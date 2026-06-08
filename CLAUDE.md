@@ -237,6 +237,13 @@ State is saved to `.vibe/state.json` (gitignored). Every skill reads and updates
 **On resume:** Read state, report where we left off, continue
 **On completion:** Move to history, clear active workflow
 
+**Schema:** The formal `.vibe/state.json` schema (field types, allowed values, examples) is defined in [WORKFLOW_RULES.md § Workflow State](docs/WORKFLOW_RULES.md#workflow-state). Key rules:
+- Create `.vibe/` and `state.json` on first workflow if they don't exist
+- MINIMAL/LIGHT: track feature, tier, phase, and relevant gates only
+- STANDARD/FULL: track all fields including ACs, all gates, spec path
+- On completion: move `active` to `history`, set `active` to `null`
+- Cap history at 20 entries
+
 See `/status` skill for display format.
 
 ---
@@ -343,7 +350,7 @@ Types: `feat`, `fix`, `docs`, `spec`, `test`, `refactor`, `chore`
 
 ## CI/CD
 
-Quality gates 1, 2, and 9 (lint, tests, build) run automatically on every PR via GitHub Actions (`.github/workflows/quality-gates.yml`). Manual gates (responsive, performance, accessibility, visual) are verified during `/review`.
+Quality gates 1, 2, and 9 (lint, tests, build) run automatically on every PR via GitHub Actions (`.github/workflows/quality-gates.yml`). The pipeline detects which npm scripts exist in `package.json` and only runs steps for configured scripts — missing scripts are skipped (not silently passed). Manual gates (responsive, performance, accessibility, visual) are verified during `/review`.
 
 ## Documentation Auto-Generation
 
