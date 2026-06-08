@@ -201,6 +201,7 @@ When user says "approved", "green light", or "looks good":
 | `.claude/settings.json` | Hooks and permissions |
 | `.claude/skills/` | Workflow skills (spec, test-plan, implement, review, ship, bug, mock-data-doc) |
 | `scripts/add-mop-foundation.sh` | Pull latest MOP Next.js foundation (preserves workflow files) |
+| `scripts/add-mop-foundation-rn.sh` | Pull latest MOP React Native foundation (preserves workflow files) |
 | `config/workflow.config.yaml` | Project-specific workflow settings |
 | `config/personas.yaml` | AI persona definitions |
 | `docs/METHODOLOGY.md` | Core philosophy and principles |
@@ -215,6 +216,15 @@ New Next.js projects scaffold from the MOP foundation at
 `degit` — not vendored — so every project gets the latest version. Re-run
 `./scripts/add-mop-foundation.sh` any time to pull updates. Workflow files
 (CLAUDE.md, .claude/, config/, docs/, scripts/) are never overwritten.
+
+## Frontend Foundation (React Native)
+
+New React Native projects scaffold from the MOP foundation at
+`github.com/ministryofprogramming/mop-foundation-react-native`. It is pulled
+fresh via `degit` — not vendored — so every project gets the latest version.
+Re-run `./scripts/add-mop-foundation-rn.sh` any time to pull updates. Workflow
+files (CLAUDE.md, .claude/, config/, docs/, scripts/) are never overwritten.
+The foundation uses pnpm as its package manager.
 
 ## Prototype → Backend Handoff
 
@@ -241,6 +251,19 @@ npm run typecheck        # TypeScript check
 
 # Build
 npm run build            # Production build
+```
+
+### React Native (if using MOP React Native foundation)
+
+```bash
+# Development
+pnpm start               # Start Expo dev server
+pnpm ios                 # Run on iOS simulator
+pnpm android             # Run on Android emulator
+
+# Quality
+pnpm lint                # Run linter
+pnpm type-check          # TypeScript check
 ```
 
 ## Critical Rules

@@ -118,6 +118,17 @@ Type these in Claude Code — no manual file copying needed:
 Pulls the latest [MOP Next.js foundation](https://github.com/ministryofprogramming/mop-foundation-nextjs)
 without touching your workflow files. Re-run any time to update.
 
+## MOP React Native Foundation
+
+```bash
+./scripts/add-mop-foundation-rn.sh         # pull latest
+./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to release
+```
+
+Pulls the latest [MOP React Native foundation](https://github.com/ministryofprogramming/mop-foundation-react-native)
+without touching your workflow files. Uses pnpm as its package manager.
+Re-run any time to update.
+
 ---
 
 ## Getting Started

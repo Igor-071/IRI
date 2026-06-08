@@ -217,15 +217,22 @@ Add `use context7` to any prompt involving a framework or library:
 "Configure Vite for SSR, use context7"
 ```
 
-### MOP Next.js Foundation
+### MOP Foundations
 
-New Next.js projects pull the latest foundation from
-`github.com/ministryofprogramming/mop-foundation-nextjs` via `degit` (not
-vendored). Workflow files are preserved.
+**Next.js** — pulls from `ministryofprogramming/mop-foundation-nextjs` via
+`degit`. Workflow files are preserved.
 
 ```bash
 ./scripts/add-mop-foundation.sh         # pull latest main
 ./scripts/add-mop-foundation.sh v1.2.0  # pin to tag/branch/commit
+```
+
+**React Native** — pulls from `ministryofprogramming/mop-foundation-react-native`
+via `degit`. Uses pnpm. Workflow files are preserved.
+
+```bash
+./scripts/add-mop-foundation-rn.sh         # pull latest main
+./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to tag/branch/commit
 ```
 
 Re-run any time to update.

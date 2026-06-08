@@ -103,23 +103,25 @@ echo ""
 FRONTEND_FRAMEWORK="null"
 if [ "$PROJECT_TYPE" = "web" ] || [ "$PROJECT_TYPE" = "mobile" ] || [ "$PROJECT_TYPE" = "fullstack" ]; then
     echo -e "${YELLOW}Step 4: Frontend Framework${NC}"
-    echo "  1) nextjs    - Next.js (recommended — MOP foundation available)"
-    echo "  2) react     - React"
-    echo "  3) vue       - Vue.js"
-    echo "  4) svelte    - Svelte"
-    echo "  5) angular   - Angular"
-    echo "  6) vanilla   - Vanilla JS"
-    echo "  7) none      - No frontend"
-    read -p "Select frontend framework (1-7): " FE_CHOICE
+    echo "  1) nextjs        - Next.js (recommended — MOP foundation available)"
+    echo "  2) react-native  - React Native / Expo (MOP foundation available)"
+    echo "  3) react         - React"
+    echo "  4) vue           - Vue.js"
+    echo "  5) svelte        - Svelte"
+    echo "  6) angular       - Angular"
+    echo "  7) vanilla       - Vanilla JS"
+    echo "  8) none          - No frontend"
+    read -p "Select frontend framework (1-8): " FE_CHOICE
 
     case $FE_CHOICE in
         1) FRONTEND_FRAMEWORK="nextjs" ;;
-        2) FRONTEND_FRAMEWORK="react" ;;
-        3) FRONTEND_FRAMEWORK="vue" ;;
-        4) FRONTEND_FRAMEWORK="svelte" ;;
-        5) FRONTEND_FRAMEWORK="angular" ;;
-        6) FRONTEND_FRAMEWORK="vanilla" ;;
-        7) FRONTEND_FRAMEWORK="null" ;;
+        2) FRONTEND_FRAMEWORK="react-native" ;;
+        3) FRONTEND_FRAMEWORK="react" ;;
+        4) FRONTEND_FRAMEWORK="vue" ;;
+        5) FRONTEND_FRAMEWORK="svelte" ;;
+        6) FRONTEND_FRAMEWORK="angular" ;;
+        7) FRONTEND_FRAMEWORK="vanilla" ;;
+        8) FRONTEND_FRAMEWORK="null" ;;
         *) FRONTEND_FRAMEWORK="nextjs" ;;
     esac
 
@@ -133,6 +135,16 @@ if [ "$PROJECT_TYPE" = "web" ] || [ "$PROJECT_TYPE" = "mobile" ] || [ "$PROJECT_
         echo "  Pulls latest from github.com/ministryofprogramming/mop-foundation-nextjs"
         echo "  Workflow files (CLAUDE.md, .claude/, config/, docs/, scripts/) are preserved."
         read -p "Scaffold now? (y/n): " SCAFFOLD_MOP
+        echo ""
+    fi
+
+    # Offer MOP React Native foundation scaffold
+    SCAFFOLD_MOP_RN="n"
+    if [ "$FRONTEND_FRAMEWORK" = "react-native" ]; then
+        echo -e "${YELLOW}Scaffold from MOP React Native foundation?${NC}"
+        echo "  Pulls latest from github.com/ministryofprogramming/mop-foundation-react-native"
+        echo "  Workflow files (CLAUDE.md, .claude/, config/, docs/, scripts/) are preserved."
+        read -p "Scaffold now? (y/n): " SCAFFOLD_MOP_RN
         echo ""
     fi
 fi
@@ -249,6 +261,16 @@ if [ "${SCAFFOLD_MOP:-n}" = "y" ] || [ "${SCAFFOLD_MOP:-n}" = "Y" ]; then
     fi
 fi
 
+if [ "${SCAFFOLD_MOP_RN:-n}" = "y" ] || [ "${SCAFFOLD_MOP_RN:-n}" = "Y" ]; then
+    echo ""
+    echo -e "${YELLOW}Scaffolding MOP React Native foundation...${NC}"
+    if [ -x "./scripts/add-mop-foundation-rn.sh" ]; then
+        ./scripts/add-mop-foundation-rn.sh || echo -e "${YELLOW}Foundation scaffold failed — re-run ./scripts/add-mop-foundation-rn.sh manually.${NC}"
+    else
+        echo -e "${YELLOW}scripts/add-mop-foundation-rn.sh not executable — skipping. Run: chmod +x scripts/add-mop-foundation-rn.sh && ./scripts/add-mop-foundation-rn.sh${NC}"
+    fi
+fi
+
 # -----------------------------------------------------------------------------
 # Rename CI Workflow
 # -----------------------------------------------------------------------------
@@ -309,6 +331,16 @@ elif [ "${SCAFFOLD_MOP:-n}" = "y" ] || [ "${SCAFFOLD_MOP:-n}" = "Y" ]; then
     echo "  2. npm run dev          # start dev server"
     echo "  3. Start your first feature: type /spec in Claude Code"
     echo "  4. Re-pull latest foundation any time: ./scripts/add-mop-foundation.sh"
+elif [ "$FRONTEND_FRAMEWORK" = "react-native" ] && [ "${SCAFFOLD_MOP_RN:-n}" != "y" ] && [ "${SCAFFOLD_MOP_RN:-n}" != "Y" ]; then
+    echo "  1. Scaffold foundation: ./scripts/add-mop-foundation-rn.sh"
+    echo "  2. pnpm install && pnpm start"
+    echo "  3. Customize CLAUDE.md with your project's actual commands"
+    echo "  4. Start your first feature: type /spec in Claude Code"
+elif [ "${SCAFFOLD_MOP_RN:-n}" = "y" ] || [ "${SCAFFOLD_MOP_RN:-n}" = "Y" ]; then
+    echo "  1. pnpm install         # install foundation dependencies"
+    echo "  2. pnpm start           # start Expo dev server"
+    echo "  3. Start your first feature: type /spec in Claude Code"
+    echo "  4. Re-pull latest foundation any time: ./scripts/add-mop-foundation-rn.sh"
 else
     echo "  1. Customize CLAUDE.md with your project's actual commands"
     echo "  2. Set GITHUB_TOKEN if you want GitHub MCP (issues, PRs, code search)"

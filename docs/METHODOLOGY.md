@@ -150,7 +150,7 @@ When upgrading, you'll need to satisfy these additional gates:
 
 ## Prototype-First Development
 
-### The MOP Next.js Foundation
+### The MOP Foundations (Next.js & React Native)
 
 Every new Next.js project starts from the same opinionated foundation at
 [`ministryofprogramming/mop-foundation-nextjs`](https://github.com/ministryofprogramming/mop-foundation-nextjs).
@@ -173,6 +173,21 @@ tsconfig.json, next.config.*) is updated.
 
 `init-project.sh` will prompt you to scaffold automatically when you select
 Next.js as your frontend framework.
+
+The same pull-via-degit approach applies to React Native. The MOP React Native
+foundation at
+[`ministryofprogramming/mop-foundation-react-native`](https://github.com/ministryofprogramming/mop-foundation-react-native)
+provides an opinionated Expo starter (Expo SDK 56, React Native 0.85, Expo
+Router, TanStack Query, Zustand, react-hook-form + Zod, atomic design, EAS
+Build). It uses pnpm as its package manager.
+
+```bash
+./scripts/add-mop-foundation-rn.sh   # run once at setup
+./scripts/add-mop-foundation-rn.sh   # re-run any time to pull updates
+```
+
+`init-project.sh` will prompt you to scaffold automatically when you select
+React Native as your frontend framework.
 
 ### Working with Mock Data
 

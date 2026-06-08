@@ -33,7 +33,7 @@ This will:
 - Enable/disable relevant quality gates
 - Prepare the CI workflow
 
-### 3. Scaffold Next.js (if using Next.js)
+### 3a. Scaffold Next.js (if using Next.js)
 
 ```bash
 ./scripts/add-mop-foundation.sh
@@ -46,6 +46,20 @@ into your project. Your workflow files (CLAUDE.md, .claude/, docs/, scripts/)
 are never touched. Re-run any time to pull foundation updates.
 
 > `init-project.sh` will offer this automatically when you select Next.js.
+
+### 3b. Scaffold React Native (if using React Native)
+
+```bash
+./scripts/add-mop-foundation-rn.sh
+pnpm install
+pnpm start
+```
+
+This pulls the latest [MOP React Native foundation](https://github.com/ministryofprogramming/mop-foundation-react-native)
+into your project. Your workflow files (CLAUDE.md, .claude/, docs/, scripts/)
+are never touched. Re-run any time to pull foundation updates.
+
+> `init-project.sh` will offer this automatically when you select React Native.
 
 ### 4. Start coding with Claude
 
@@ -140,6 +154,7 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md) for the philosophy behind this approac
 └── scripts/
     ├── init-project.sh          # Project initialization
     ├── add-mop-foundation.sh    # Pull latest MOP Next.js foundation
+    ├── add-mop-foundation-rn.sh # Pull latest MOP React Native foundation
     └── upgrade-to-production.sh # Prototype → Production upgrade
 ```
 
@@ -272,6 +287,27 @@ preserved. Foundation files are overlaid. `.gitignore` is merged. Re-run any
 time to update.
 
 `init-project.sh` offers to scaffold automatically when you select Next.js.
+
+### MOP React Native Foundation
+
+New React Native projects pull the latest starter from
+[`ministryofprogramming/mop-foundation-react-native`](https://github.com/ministryofprogramming/mop-foundation-react-native)
+via `degit` — same pull-not-copy approach as the Next.js foundation:
+
+```bash
+./scripts/add-mop-foundation-rn.sh         # pull latest main
+./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to a specific release
+```
+
+**Stack:** Expo SDK 56, React Native 0.85, React 19, TypeScript 6, Expo Router,
+TanStack Query, Zustand, react-hook-form + Zod, atomic design, EAS Build.
+
+**Package manager:** pnpm (not npm). Use `pnpm install`, `pnpm start`, etc.
+
+Your workflow files are preserved. Foundation files are overlaid. `.gitignore`
+is merged. Re-run any time to update.
+
+`init-project.sh` offers to scaffold automatically when you select React Native.
 
 ---
 

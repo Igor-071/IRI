@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # =============================================================================
-# Vibecoding Workflow - Add MOP Next.js Foundation
+# Vibecoding Workflow - Add MOP React Native Foundation
 # =============================================================================
 #
-# Pulls the latest MOP Next.js foundation from
-# git@github.com:ministryofprogramming/mop-foundation-nextjs (private repo, SSH required)
+# Pulls the latest MOP React Native foundation from
+# https://github.com/ministryofprogramming/mop-foundation-react-native
 # and overlays it on the current project WITHOUT clobbering the vibecoding
 # workflow files (CLAUDE.md, .claude/, config/, docs/, scripts/, etc.).
 #
 # Usage:
-#   ./scripts/add-mop-foundation.sh              # pulls latest main
-#   ./scripts/add-mop-foundation.sh v1.2.0       # pulls tag/branch/commit
+#   ./scripts/add-mop-foundation-rn.sh              # pulls latest main
+#   ./scripts/add-mop-foundation-rn.sh v1.2.0       # pulls tag/branch/commit
 #
 # Safe to re-run. Existing foundation files are overwritten; workflow files
 # are preserved.
@@ -26,14 +26,14 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-REPO="git@github.com:ministryofprogramming/mop-foundation-nextjs"
+REPO="ministryofprogramming/mop-foundation-react-native"
 REF="${1:-}"  # optional tag/branch/commit; empty = default branch
 DEGIT_TARGET="$REPO"
 [ -n "$REF" ] && DEGIT_TARGET="$REPO#$REF"
 
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     Add MOP Next.js Foundation                            ║${NC}"
+echo -e "${BLUE}║     Add MOP React Native Foundation                       ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "Source: ${YELLOW}$DEGIT_TARGET${NC}"
@@ -52,30 +52,6 @@ if ! command -v rsync >/dev/null 2>&1; then
     exit 1
 fi
 
-# Check SSH access to GitHub (required — repo is private)
-if ! ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-    echo -e "${RED}Error: SSH access to GitHub is not configured.${NC}"
-    echo ""
-    echo -e "${YELLOW}To set up SSH for GitHub:${NC}"
-    echo "  1. Generate a key (skip if you already have one):"
-    echo "       ssh-keygen -t ed25519 -C \"your@email.com\""
-    echo ""
-    echo "  2. Add the key to your SSH agent:"
-    echo "       eval \"\$(ssh-agent -s)\""
-    echo "       ssh-add ~/.ssh/id_ed25519"
-    echo ""
-    echo "  3. Copy your public key:"
-    echo "       cat ~/.ssh/id_ed25519.pub"
-    echo "     Then go to https://github.com/settings/ssh/new and paste it."
-    echo ""
-    echo "  4. Verify the connection:"
-    echo "       ssh -T git@github.com"
-    echo "     You should see: Hi <username>! You've successfully authenticated..."
-    echo ""
-    echo "  5. Re-run this script."
-    exit 1
-fi
-
 # Must be run from project root (sanity check)
 if [ ! -f "CLAUDE.md" ]; then
     echo -e "${RED}Error: CLAUDE.md not found. Run this from the project root.${NC}"
@@ -83,10 +59,10 @@ if [ ! -f "CLAUDE.md" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Warn on existing Next.js files
+# Warn on existing React Native files
 # -----------------------------------------------------------------------------
 CONFLICT=0
-for f in package.json next.config.js next.config.mjs tsconfig.json; do
+for f in package.json app.json eas.json tsconfig.json; do
     if [ -f "$f" ]; then
         CONFLICT=1
         break
@@ -94,7 +70,7 @@ for f in package.json next.config.js next.config.mjs tsconfig.json; do
 done
 
 if [ "$CONFLICT" = "1" ]; then
-    echo -e "${YELLOW}Warning: Next.js-related files already exist (package.json, next.config.*, tsconfig.json).${NC}"
+    echo -e "${YELLOW}Warning: React Native-related files already exist (package.json, app.json, eas.json, tsconfig.json).${NC}"
     echo "They will be OVERWRITTEN by the MOP foundation."
     read -p "Continue? (y/n): " CONFIRM
     if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
@@ -113,7 +89,7 @@ echo -e "${YELLOW}Fetching foundation into temporary directory...${NC}"
 
 # Disable exit-on-error for the degit call so we can handle failure gracefully
 set +e
-npx --yes degit "$DEGIT_TARGET" "$TMP_DIR" --mode=git --force 2>/tmp/degit_error.txt
+npx --yes degit "$DEGIT_TARGET" "$TMP_DIR" --force 2>/tmp/degit_error.txt
 DEGIT_EXIT=$?
 set -e
 
@@ -127,36 +103,32 @@ if [ $DEGIT_EXIT -ne 0 ] || [ ! -d "$TMP_DIR" ] || [ -z "$(ls -A "$TMP_DIR")" ];
     echo ""
     cat /tmp/degit_error.txt 2>/dev/null || true
     echo ""
-    echo -e "${YELLOW}Falling back to create-next-app...${NC}"
+    echo -e "${YELLOW}Falling back to create-expo-app...${NC}"
     echo ""
 
-    # Fallback: scaffold with official create-next-app
-    npx --yes create-next-app@latest . \
-        --typescript \
-        --tailwind \
-        --eslint \
-        --app \
-        --no-src-dir \
-        --import-alias "@/*" \
+    # Fallback: scaffold with official create-expo-app
+    npx --yes create-expo-app@latest . \
+        --template blank-typescript \
         --yes 2>&1
 
     if [ $? -ne 0 ]; then
-        echo -e "${RED}Error: create-next-app also failed. Install Node.js and try again.${NC}"
+        echo -e "${RED}Error: create-expo-app also failed. Install Node.js and try again.${NC}"
         exit 1
     fi
 
     echo ""
-    echo -e "${GREEN}✓ Scaffolded with create-next-app (Next.js + TypeScript + Tailwind)${NC}"
+    echo -e "${GREEN}✓ Scaffolded with create-expo-app (Expo + TypeScript)${NC}"
     echo -e "${YELLOW}Note: Re-run this script when the MOP foundation repo is available to get the full foundation.${NC}"
     echo ""
 
     echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║     Foundation installed (via create-next-app)             ║${NC}"
+    echo -e "${BLUE}║     Foundation installed (via create-expo-app)             ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${YELLOW}Next steps:${NC}"
-    echo "  1. npm run dev          # start the dev server"
-    echo "  2. Review new files (git status) before committing"
+    echo "  1. pnpm install         # install dependencies"
+    echo "  2. pnpm start           # start the Expo dev server"
+    echo "  3. Review new files (git status) before committing"
     echo ""
     echo -e "${GREEN}Done.${NC}"
     exit 0
@@ -200,7 +172,7 @@ echo -e "${GREEN}✓ Foundation files copied${NC}"
 # -----------------------------------------------------------------------------
 if [ -f "$TMP_DIR/.gitignore" ]; then
     echo -e "${YELLOW}Merging .gitignore entries from foundation...${NC}"
-    MERGE_MARKER="# --- merged from MOP foundation ---"
+    MERGE_MARKER="# --- merged from MOP React Native foundation ---"
 
     # Only add the block once
     if ! grep -qF "$MERGE_MARKER" .gitignore 2>/dev/null; then
@@ -211,7 +183,7 @@ if [ -f "$TMP_DIR/.gitignore" ]; then
         } >> .gitignore
         echo -e "${GREEN}✓ .gitignore merged${NC}"
     else
-        echo -e "${YELLOW}.gitignore already contains MOP foundation entries — skipped${NC}"
+        echo -e "${YELLOW}.gitignore already contains MOP React Native foundation entries — skipped${NC}"
     fi
 fi
 
@@ -224,11 +196,11 @@ echo -e "${BLUE}║     Foundation installed                                   �
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${YELLOW}Next steps:${NC}"
-echo "  1. npm install          # install foundation dependencies"
+echo "  1. pnpm install         # install foundation dependencies"
 echo "  2. Review any new files (git status) before committing"
-echo "  3. npm run dev          # start the dev server"
+echo "  3. pnpm start           # start the Expo dev server"
 echo ""
 echo -e "${YELLOW}Re-run this script any time to pull the latest foundation:${NC}"
-echo "  ./scripts/add-mop-foundation.sh"
+echo "  ./scripts/add-mop-foundation-rn.sh"
 echo ""
 echo -e "${GREEN}Done.${NC}"
