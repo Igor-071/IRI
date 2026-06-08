@@ -424,6 +424,23 @@ Start with the simplest solution that could work. Add complexity only when neede
 - No over-engineering
 - YAGNI (You Aren't Gonna Need It)
 
+### 7. Graceful Recovery
+
+When things go wrong — a test fails, a gate breaks, a fix causes regressions — the workflow follows structured recovery paths instead of improvising.
+
+- Every skill has defined error handling
+- After any fix, re-run ALL checks (not just the failed one)
+- When stuck, report honestly and ask for guidance
+- Never fabricate solutions or guess at root causes
+
+### 8. Visual Truth
+
+Code review catches logic errors. Visual verification catches layout breaks, missing elements, and responsive issues that code review can't.
+
+- Playwright screenshots at key breakpoints (375/768/1440px)
+- User confirms visual correctness before shipping
+- Screenshots serve as documentation of what was built
+
 ---
 
 ## Adaptive Ceremony: Right-Sized Process

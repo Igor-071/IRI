@@ -584,6 +584,89 @@ When user says "approved", "green light", or "looks good":
 
 ---
 
+## Error Handling & Recovery
+
+Every skill has structured error recovery built in. When something fails, Claude follows a defined path instead of improvising.
+
+### General Recovery Principles
+
+1. **After ANY fix, re-run ALL checks** — not just the one that failed
+2. **Report honestly** — if stuck, say so. Don't fabricate solutions
+3. **Escalate to user** — when blocked after reasonable effort, ask for guidance
+4. **Never guess** — if a type is unclear, a requirement is ambiguous, or a root cause is uncertain, flag it
+
+### Skill-Specific Recovery
+
+| Skill | Common Failures | Recovery Path |
+|-------|----------------|---------------|
+| `/spec` | User rejects spec; spec too long; ambiguous ACs | Revise specific sections; split feature; ask clarifying questions |
+| `/test-plan` | Spec has no ACs; AC is untestable; no test framework | STOP and report; propose rewrite; report missing setup |
+| `/implement` | context7 down; RED test passes; GREEN breaks others | Fall back to WebSearch; delete wrong test; REVERT and fix design |
+| `/review` | Tests fail; lint fails; build fails; gate impossible | Fix and re-run ALL gates; auto-fix lint; mark impossible as SKIPPED |
+| `/ship` | Pre-commit hook fails; push rejected; PR creation fails | Fix and NEW commit (never amend); report conflict; check `gh auth` |
+| `/bug` | Can't reproduce; Five Whys stalls; fix breaks tests | Document attempts and ask user; report where analysis stopped; REVERT |
+| `/mock-data-doc` | No mocks found; ambiguous shapes; doc already exists | Report search locations; mark as "type unclear"; ask overwrite/append |
+
+### Key Rule
+
+If a "quick fix" (`/fix`) turns out to be complex (3+ files, unclear root cause), STOP and recommend upgrading to STANDARD tier with `/vibe feature`.
+
+Full error recovery details are in each skill file: `.claude/skills/[name]/SKILL.md`.
+
+---
+
+## Visual Verification
+
+For UI changes, the review skill captures screenshots at key breakpoints using Playwright MCP:
+
+| Breakpoint | Device |
+|-----------|--------|
+| 375px | Mobile (iPhone) |
+| 768px | Tablet |
+| 1440px | Desktop |
+
+**Process:**
+1. Playwright navigates to the feature's page at each breakpoint
+2. Screenshots are presented to the user with descriptions of what changed
+3. User confirms visual correctness
+
+**When unavailable:** If Playwright MCP is not configured, visual verification is marked as SKIPPED. The user is asked to manually verify.
+
+**By tier:**
+- MINIMAL: No visual verification
+- LIGHT: Optional (if UI change)
+- STANDARD: Optional (recommended for UI)
+- FULL: Required
+
+---
+
+## CI/CD Integration
+
+Quality gates 1, 2, and 9 (lint, tests, build) run automatically via GitHub Actions on every push to `main`/`develop` and every PR.
+
+**Pipeline file:** `.github/workflows/quality-gates.yml`
+
+**What runs automatically:**
+| Gate | CI Step | Notes |
+|------|---------|-------|
+| Lint | `npm run lint` | Gate 1 |
+| Type check | `npm run typecheck` | Part of Gate 2 |
+| Tests | `npm run test` | Gate 2 |
+| Build | `npm run build` | Gate 9 |
+
+**What runs manually (during `/review`):**
+- Responsive check (Gate 4) — requires browser
+- Visual verification (Gate 4b) — requires Playwright
+- Code review (Gate 5) — requires reading the diff
+- Performance (Gate 6) — requires Lighthouse
+- Accessibility (Gate 7) — requires axe-core
+- Cross-browser (Gate 8) — requires multiple browsers
+- Security (Gate 10) — requires code analysis
+
+The CI pipeline uses `|| echo "..."` fallbacks for scripts that may not exist yet (e.g., in a fresh project). Remove the fallbacks once your project has the commands configured.
+
+---
+
 ## Workflow State
 
 State is tracked in `.vibe/state.json` (gitignored). Every skill reads and updates it.

@@ -108,6 +108,34 @@ Type these in Claude Code:
 
 ---
 
+## v2.0 Features
+
+### Adaptive Tiers
+The workflow auto-detects complexity and applies the right ceremony level. A typo fix gets MINIMAL (lint only). A new feature gets STANDARD (spec → TDD → review). Override with `--minimal`, `--light`, `--standard`, `--full`.
+
+### Error Recovery
+Every skill has structured error handling. When a gate fails, a test breaks, or something goes wrong, Claude follows a defined recovery path instead of improvising. Details in each skill file.
+
+### Visual Verification
+For UI changes, `/review` captures Playwright screenshots at 375px/768px/1440px and presents them for visual confirmation.
+
+### Memory Integration
+The workflow learns across sessions via the memory MCP server. It saves completed workflow metadata, bug patterns, and user preferences. On new work, it recalls similar past features and lessons learned.
+
+### Workflow State
+State is persisted to `.vibe/state.json`. Use `/status` to check where you are, `/vibe pause` to save progress, `/vibe resume` to continue.
+
+### CI/CD
+Lint, tests, and build run automatically on every PR via GitHub Actions. Manual gates (responsive, visual, performance) run during `/review`.
+
+### Parallel Workflows
+Use `/worktree` to work on multiple features simultaneously via git worktrees.
+
+### Source of Truth
+`CLAUDE.md` is the single source of truth. Config YAML files in `config/` are reference-only — Claude does not read them.
+
+---
+
 ## MOP Foundations
 
 ```bash

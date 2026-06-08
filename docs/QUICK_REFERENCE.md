@@ -97,6 +97,30 @@ BLUE  → Refactor, keep tests passing
 | Security | - | - | Prod only | Yes |
 | Visual | - | Optional | Optional | Yes |
 
+### Visual Verification (UI changes)
+
+Playwright screenshots at 375px / 768px / 1440px. Presented to user for confirmation.
+If Playwright unavailable: marked SKIPPED, user verifies manually.
+
+### CI/CD (Automatic)
+
+Lint, typecheck, tests, and build run on every PR via `.github/workflows/quality-gates.yml`.
+Manual gates (responsive, visual, performance, a11y, security) run during `/review`.
+
+---
+
+## Error Recovery (Quick Reference)
+
+Every skill has built-in error recovery. Key patterns:
+
+- **After any fix → re-run ALL checks** (not just the failed one)
+- **Test passes when it shouldn't → delete and rewrite the test**
+- **Fix breaks other tests → REVERT, fix design first**
+- **Stuck after reasonable effort → STOP, report, ask user**
+- **Quick fix too complex → upgrade to STANDARD tier**
+
+Full details in each skill: `.claude/skills/[name]/SKILL.md`
+
 ---
 
 ## Traceability Matrix
@@ -174,11 +198,13 @@ AWAITING YOUR APPROVAL
 
 | Type | Location |
 |------|----------|
+| **Source of truth** | `CLAUDE.md` |
 | Specs | `docs/specs/[feature].md` |
 | Reviews | `docs/reviews/[feature].md` |
 | Feature Docs | `docs/features/[feature].md` |
 | Bug Post-mortems | `docs/bugs/[bug-id].md` |
 | Workflow State | `.vibe/state.json` |
+| Config (reference only) | `config/*.yaml` — YAML is NOT read by Claude |
 
 ---
 

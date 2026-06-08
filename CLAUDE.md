@@ -241,6 +241,20 @@ See `/status` skill for display format.
 
 ---
 
+## Error Recovery
+
+Every skill has structured error recovery. Key principles:
+
+- **After any fix, re-run ALL checks** — not just the one that failed
+- **Report honestly** — if stuck after reasonable effort, say so and ask for guidance
+- **Never guess** — if types are unclear, requirements ambiguous, or root cause uncertain, flag it
+- **Escalate scope** — if a `/fix` turns complex (3+ files, unclear root cause), recommend upgrading to STANDARD with `/vibe feature`
+- **REVERT on regression** — if a fix breaks other tests, revert immediately and fix the design
+
+Full error recovery details are in each skill file: `.claude/skills/[name]/SKILL.md`.
+
+---
+
 ## Memory Integration
 
 Use the memory MCP server to learn from past sessions.
