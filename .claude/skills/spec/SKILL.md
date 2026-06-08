@@ -52,8 +52,21 @@ THEN [expected outcome]
 Architecture decisions, component structure, data flow — only if non-obvious.
 ```
 
+## State Tracking
+
+On start: Update `.vibe/state.json` — set phase to "spec", feature name from user request.
+On completion: Update phase to "spec_complete", save spec file path.
+
 ## Rules
 - Every criterion MUST use Given/When/Then. No exceptions.
 - Keep specs short. If a spec exceeds 100 lines, the feature is too big — split it.
 - Non-goals are mandatory. They prevent scope creep.
 - The traceability matrix starts empty. It gets filled during implementation.
+
+## Error Recovery
+- **User rejects spec:** Ask what needs to change. Revise the specific sections. Re-present. Don't rewrite from scratch unless asked.
+- **Spec exceeds 100 lines:** The feature is too big. Propose splitting into 2-3 smaller features with clear boundaries. Present the split for approval.
+- **ACs are ambiguous:** Ask clarifying questions before finalizing. "For AC-003, what should happen when the input is empty?"
+- **Can't determine non-goals:** Ask directly: "What should this feature NOT do?" Non-goals are mandatory.
+- **User wants to skip spec:** If tier is LIGHT or MINIMAL, that's fine — redirect to `/fix`. If STANDARD+, explain why specs matter but respect the user's choice.
+- **Similar spec exists:** Check `docs/specs/` for existing specs. If found, ask: "A spec for [similar feature] already exists. Should we extend it or create a new one?"

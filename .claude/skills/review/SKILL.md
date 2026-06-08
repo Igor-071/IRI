@@ -42,9 +42,39 @@ QUALITY REVIEW: [Feature Name]
 RESULT: ALL GATES PASSED — Ready to ship
 ```
 
-## If a Gate Fails
+## Visual Verification (Gate 4b — UI changes)
 
-1. Report which gate failed and why
-2. Fix the issue
-3. Re-run ALL gates (not just the failed one)
-4. Report again
+If the feature includes UI changes:
+
+1. Use Playwright MCP to capture screenshots at key breakpoints:
+   - 375px (mobile)
+   - 768px (tablet)
+   - 1440px (desktop)
+2. Present screenshots to user with description of what changed
+3. User confirms visual correctness
+
+If Playwright is unavailable: Note as SKIPPED — "No browser automation available. Please verify visually." Ask user to manually check.
+
+## State Tracking
+
+On start: Update `.vibe/state.json` — set phase to "review".
+On each gate: Update the gate's status (passed/failed) in state.
+On completion: Update phase to "review_complete".
+
+## Memory Integration
+
+After review completes:
+- Save to memory MCP: which gates failed first, what the fix was
+- If a gate fails repeatedly across features, flag it in future reviews: "Note: lint has failed in the last 3 reviews — consider adding a pre-save hook."
+
+## Error Recovery
+
+- **Tests fail:** Report which tests and why. If the fix is obvious (missing import, typo), fix it. If unclear, ask user. After ANY fix, re-run ALL gates from the beginning.
+- **Lint fails:** Run `npm run lint:fix` first. If auto-fix resolves it, continue. If not, report remaining issues and fix manually. Re-run all gates.
+- **Responsive check fails:** Report which breakpoint breaks and what the issue is (overflow, hidden content, tiny text). Fix. Re-check ALL breakpoints, not just the broken one.
+- **Build fails:** Report the full error. Fix. Re-run the build. If the error is in a dependency, report to user.
+- **Lighthouse < 90:** Report the score breakdown (Performance, Accessibility, Best Practices, SEO). Fix the top 3 issues by impact. Re-audit.
+- **Accessibility fails:** Report axe-core violations with severity. Fix critical/serious first. Re-scan.
+- **After ANY fix:** Re-run ALL gates from gate 1. Never assume a fix didn't affect other gates.
+- **Gate is impossible to run** (e.g., no Lighthouse in CLI, no browser for responsive): Mark as SKIPPED with reason. Don't fail the review — but note it clearly.
+- **All gates pass but code review finds issues:** Fix the issues. Re-run all automated gates to verify the fix didn't break anything.

@@ -1,16 +1,19 @@
-# Vibecoding Workflow Template
+# Vibecoding Workflow Template v2.0
 
-A structured, AI-assisted development workflow for building high-quality software with precision.
+A structured, AI-assisted development workflow that adapts ceremony to complexity.
 
 ## What is Vibecoding?
 
-Vibecoding is a **Spec-Driven Development** methodology designed for AI-assisted development. It combines:
+Vibecoding is an **Adaptive Spec-Driven Development** methodology designed for AI-assisted development. It combines:
 
-- **Spec-First Development** - Write detailed specifications before any code
+- **Adaptive Tier System** - Right-sized ceremony for every change (MINIMAL → FULL)
+- **Spec-First Development** - Detailed specifications before code (STANDARD+ tiers)
 - **BDD-style Acceptance Criteria** - Given/When/Then format for precision
 - **Test-Driven Development** - Red-Green-Blue cycle for quality
-- **Quality Gates** - 10 mandatory checks before delivery
+- **Quality Gates** - 1-10 gates depending on tier and mode
 - **Stop & Wait Protocol** - Human remains in control
+- **Workflow State Persistence** - Pause, resume, and track across sessions
+- **Memory Integration** - Learns from past sessions
 
 ## Quick Start
 
@@ -63,14 +66,16 @@ are never touched. Re-run any time to pull foundation updates.
 
 ### 4. Start coding with Claude
 
-Open the project in your IDE with Claude Code and start your first feature:
+Open the project in your IDE with Claude Code and start:
 
 ```
-/spec
+/getting-started       # First time? Interactive walkthrough
+/vibe fix the typo     # Quick fix (MINIMAL tier)
+/vibe add login page   # New feature (STANDARD tier)
+/status                # Check workflow state
 ```
 
-Type `/spec` to create a specification, `/implement` after it's approved,
-`/review` when done. See the [Slash Commands](#slash-commands-skills) table below.
+The workflow auto-detects the right tier for your change. See [Commands](#commands) below.
 
 ### 5. Upgrade to Production (when ready)
 
@@ -121,14 +126,18 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md) for the philosophy behind this approac
 
 ```
 .
-├── CLAUDE.md                    # AI instructions (Claude Code reads this)
+├── CLAUDE.md                    # Single source of truth (Claude reads this)
 ├── README.md                    # You are here
 ├── LICENSE
 ├── .gitignore
 │
-├── config/
-│   ├── workflow.config.yaml     # Project-specific settings
-│   └── personas.yaml            # AI team personas
+├── config/                      # Reference configs (YAML, not authoritative)
+│   ├── workflow.config.yaml     # Project settings reference
+│   ├── personas.yaml            # AI persona reference
+│   ├── tiers.yaml               # Tier definitions reference
+│   ├── commands.yaml            # Command definitions reference
+│   ├── detection.yaml           # Auto-detection rules reference
+│   └── gates.yaml               # Quality gates reference
 │
 ├── docs/
 │   ├── README.md                # Documentation hub
@@ -136,7 +145,7 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md) for the philosophy behind this approac
 │   ├── WORKFLOW_RULES.md        # Complete workflow reference
 │   ├── QUICK_REFERENCE.md       # Daily cheat sheet
 │   ├── SPEC_TEMPLATE.md         # Feature specification template
-│   │
+│   ├── IMPLEMENTATION_PLAN.md   # v2.0 implementation plan
 │   ├── specs/                   # Feature specifications
 │   ├── reviews/                 # Quality reviews
 │   ├── features/                # Feature documentation
@@ -144,17 +153,33 @@ See [METHODOLOGY.md](docs/METHODOLOGY.md) for the philosophy behind this approac
 │
 ├── .github/
 │   ├── ISSUE_TEMPLATE/          # Issue templates
-│   ├── PULL_REQUEST_TEMPLATE.md # PR template with quality gates
-│   └── workflows/               # CI/CD workflows
+│   ├── PULL_REQUEST_TEMPLATE.md # PR template
+│   └── workflows/
+│       └── quality-gates.yml    # CI pipeline (lint, tests, build)
 │
 ├── .claude/
 │   ├── settings.json            # Hooks (auto-lint + pre-commit)
-│   └── skills/                  # Slash commands (spec, test-plan, implement, review, ship, bug, mock-data-doc)
+│   └── skills/                  # Slash commands
+│       ├── vibe/                # /vibe — Master router (auto-detect tier)
+│       ├── fix/                 # /fix — Quick fix shortcut
+│       ├── status/              # /status — Workflow state display
+│       ├── getting-started/     # /getting-started — Interactive onboarding
+│       ├── worktree/            # /worktree — Parallel workflows
+│       ├── spec/                # /spec — Specification writing
+│       ├── test-plan/           # /test-plan — Test matrix planning
+│       ├── implement/           # /implement — TDD implementation
+│       ├── review/              # /review — Quality gates
+│       ├── ship/                # /ship — Commit + PR
+│       ├── bug/                 # /bug — Bug analysis
+│       └── mock-data-doc/       # /mock-data-doc — Backend handoff
+│
+├── .vibe/                       # Workflow state (gitignored)
+│   └── state.json               # Current workflow state
 │
 └── scripts/
     ├── init-project.sh          # Project initialization
-    ├── add-mop-foundation.sh    # Pull latest MOP Next.js foundation
-    ├── add-mop-foundation-rn.sh # Pull latest MOP React Native foundation
+    ├── add-mop-foundation.sh    # Pull MOP Next.js foundation
+    ├── add-mop-foundation-rn.sh # Pull MOP React Native foundation
     └── upgrade-to-production.sh # Prototype → Production upgrade
 ```
 
@@ -214,18 +239,31 @@ AI: Auto-generates docs/features/user-authentication.md
 User: "Commit" (when ready)
 ```
 
-## Key Features
+## Commands
 
-### Slash Commands (Skills)
+### Primary (v2.0)
 
-Everything Claude does is driven by slash commands. Type them in Claude Code:
+| Command | What it does |
+|---------|--------------|
+| `/vibe <description>` | **Auto-detect tier and execute** — the main entry point |
+| `/vibe fix <desc>` | Bug fix (LIGHT tier) |
+| `/vibe tweak <desc>` | Small change (MINIMAL tier) |
+| `/vibe feature <desc>` | New feature (STANDARD tier) |
+| `/vibe epic <desc>` | Major feature (FULL tier) |
+| `/vibe hotfix <desc>` | Production fire (EMERGENCY tier) |
+| `/fix <description>` | Quick fix shortcut (MINIMAL/LIGHT) |
+| `/status` | Show current workflow state |
+| `/getting-started` | Interactive onboarding for new users |
+| `/worktree start <name>` | Start parallel feature development |
+
+### Standard Workflow Skills
 
 | Command | Phase | What it does |
 |---------|-------|--------------|
 | `/spec` | 1 — Specification | Creates spec in `docs/specs/` with Given/When/Then ACs |
 | `/test-plan` | 2 — Test Planning | Produces test matrix appended to the spec file |
 | `/implement` | 3 — Implementation | TDD cycle: Red → Green → Blue |
-| `/review` | 4 — Review | Runs all quality gates, reports pass/fail |
+| `/review` | 4 — Review | Runs quality gates, visual verification, reports pass/fail |
 | `/ship` | 5 — Ship | Creates commit + PR with conventional commit message |
 | `/bug` | Any | Root cause analysis (5 Whys) + regression test |
 | `/mock-data-doc` | Handoff | Generates `docs/MOCKED_DATA_STRUCTURE.md` for backend team |
@@ -438,18 +476,18 @@ docs(auth): add login feature documentation
 ## Critical Rules
 
 **NEVER:**
-- Write code without approved spec
-- Skip Given/When/Then format
-- Proceed without user approval
-- Auto-commit or auto-push
-- Skip quality gates
+- Apply FULL ceremony to a typo (use MINIMAL)
+- Apply MINIMAL ceremony to a feature (use STANDARD+)
+- Commit or push without user instruction
+- Skip quality gates for the active tier
+- Force push, reset --hard, or clean -f
 
 **ALWAYS:**
-- Spec before code
-- Tests before implementation
-- Stop & Wait for approval
-- Generate docs on approval
-- Post-mortem for bugs
+- Match ceremony to complexity (right tier)
+- Tests before code (LIGHT+ tiers)
+- Spec before code (STANDARD+ tiers)
+- Stop & Wait for approval at phase gates
+- Use `use context7` with framework/library APIs
 
 ## License
 

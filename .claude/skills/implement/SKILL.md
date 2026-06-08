@@ -74,3 +74,18 @@ AWAITING YOUR APPROVAL
 ```
 
 4. **STOP. Wait for user approval.**
+
+## State Tracking
+
+On start: Update `.vibe/state.json` — set phase to "implementation".
+On each AC completion: Update the AC's status to "passed" with test file path.
+On all ACs done: Update phase to "implementation_complete".
+
+## Error Recovery
+- **Context7 fails or is unavailable:** Warn user. Fall back to WebSearch for current docs. Note in output: "context7 unavailable — used web search for API docs."
+- **RED test passes unexpectedly:** The test is wrong — it doesn't test what you think. Delete it. Re-read the AC. Write a test that actually fails without the implementation.
+- **GREEN breaks other tests:** REVERT the change. The coupling means the design needs rethinking. Understand why the other tests broke before retrying. Fix the design, not the symptoms.
+- **Lint fails after refactor:** Fix lint issues immediately. Re-run all tests to confirm nothing broke.
+- **A dependency is missing:** Report it to user: "This AC requires [package]. Please install it." Don't auto-install packages.
+- **Stuck on an AC:** After reasonable effort, STOP. Report what you tried, what failed, and where you're blocked. Ask for guidance. Don't spin.
+- **Test is hard to write:** The design is wrong. Step back. Consider: Is the AC too broad? Is the component too coupled? Refactor the design first, then write the test.

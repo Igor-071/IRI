@@ -1,3 +1,8 @@
+# =============================================================================
+# REFERENCE ONLY — Tier definitions are authoritative in CLAUDE.md
+# and .claude/skills/vibe/SKILL.md. Claude does NOT read YAML files.
+# =============================================================================
+#
 # Vibecoding Workflow 2.0 - Tier Definitions
 # Defines the four ceremony levels and their processes
 

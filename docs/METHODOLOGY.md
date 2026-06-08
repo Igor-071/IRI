@@ -426,28 +426,69 @@ Start with the simplest solution that could work. Add complexity only when neede
 
 ---
 
-## The Complete Flow
+## Adaptive Ceremony: Right-Sized Process
+
+> **"Not every change deserves a spec. But every feature does."**
+
+v2.0 introduces the **Adaptive Tier System** — the workflow matches ceremony to complexity automatically.
+
+### Why Adaptive?
+
+The original workflow applied the same 5-phase process to everything. A typo fix went through spec → test plan → implement → review → present. That's friction that discourages use.
+
+The tier system recognizes that:
+- A typo fix needs lint, not a spec
+- A bug fix needs a test and a fix, not a test plan
+- A new feature needs the full ceremony
+- An epic needs even more (architecture review, security audit)
+
+### The Tiers
+
+| Tier | Ceremony | When |
+|------|----------|------|
+| **MINIMAL** | Change → Lint | Typos, copy, styling, config |
+| **LIGHT** | Understand → Test → Fix → Verify | Bug fixes, small additions, refactoring |
+| **STANDARD** | Spec → Test Plan → TDD → Review → Present | New features, significant changes |
+| **FULL** | Spec → Test Plan → TDD → Full Review → Docs → Present | Epics, architecture, security |
+| **EMERGENCY** | Reproduce → Fix → Critical Test → Deploy → Postmortem | Production fires |
+
+### Auto-Detection
+
+The workflow detects the right tier from keywords, scope, and file count in the user's request. Users can always override with `--minimal`, `--light`, `--standard`, or `--full`.
+
+### Learning from Past Sessions
+
+The workflow uses the memory MCP server to learn from past sessions:
+- What tiers worked well for similar changes
+- Which quality gates fail most often
+- User preferences for tier overrides
+- Bug patterns to watch for
+
+This means the workflow gets smarter over time.
+
+---
+
+## The Complete Flow (v2.0)
 
 ```
 [User Request]
      ↓
-[Phase 1: SPEC] → Write detailed spec with Given/When/Then
+[Auto-Detect Tier]
      ↓
-[User Approval] → "Spec approved"
+┌─────────────┬──────────────┬───────────────────┬──────────────────┐
+│  MINIMAL    │    LIGHT     │     STANDARD      │      FULL        │
+├─────────────┼──────────────┼───────────────────┼──────────────────┤
+│ Change      │ Understand   │ Spec → Approval   │ Spec → Approval  │
+│ Lint        │ Test         │ Test Plan → Appr. │ Test Plan → Appr.│
+│ Done        │ Fix          │ TDD (each AC)     │ TDD (each AC)    │
+│             │ Verify       │ Review (5/10)     │ Review (all 10)  │
+│             │ Done         │ Present → Appr.   │ Docs → Present   │
+│             │              │ Done              │ Done              │
+└─────────────┴──────────────┴───────────────────┴──────────────────┘
      ↓
-[Phase 2: TEST PLAN] → Plan tests for each criterion
+[Save to Memory]
      ↓
-[Phase 3: IMPLEMENT] → TDD: Red-Green-Blue cycle
-     ↓
-[Phase 4: REVIEW] → All 10 quality gates must pass
-     ↓
-[Phase 5: USER TEST] → Present to user, STOP & WAIT
-     ↓
-[User Approval] → "Approved" / "Green light"
-     ↓
-[Auto-Generate Docs] → Feature documentation created
-     ↓
-[User Request] → "Commit" (if ready)
+[Update .vibe/state.json]
      ↓
 [COMPLETE]
 ```
@@ -456,19 +497,19 @@ Start with the simplest solution that could work. Add complexity only when neede
 
 ## When to Deviate
 
-This methodology is designed for building features with quality. Some situations may call for deviation:
+The tier system already handles most deviations. Explicit tiers replace ad-hoc shortcuts:
 
-| Situation | Approach |
-|-----------|----------|
-| **Quick experiment** | Skip formal spec, but document learnings |
-| **Critical hotfix** | Fix first, post-mortem after |
-| **Trivial change** | Simplified spec, same quality gates |
-| **Learning/exploration** | Informal, but capture insights |
+| Old Deviation | v2.0 Approach |
+|---------------|---------------|
+| Quick experiment | Use MINIMAL tier |
+| Critical hotfix | Use EMERGENCY tier |
+| Trivial change | Use MINIMAL tier |
+| Learning/exploration | Use MINIMAL or LIGHT tier |
 
-Even when deviating, maintain:
-- User control (Stop & Wait)
-- Manual git
-- Basic quality checks
+Even at MINIMAL tier, maintain:
+- User control (Stop & Wait for LIGHT+)
+- Manual git (always)
+- Lint (always)
 
 ---
 

@@ -1,3 +1,8 @@
+# =============================================================================
+# REFERENCE ONLY — Command definitions are authoritative in CLAUDE.md
+# and .claude/skills/vibe/SKILL.md. Claude does NOT read YAML files.
+# =============================================================================
+#
 # Vibecoding Workflow 2.0 - Command Definitions
 # These commands are recognized by Claude for workflow control
 

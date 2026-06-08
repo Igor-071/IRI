@@ -60,9 +60,22 @@ Next: approve this plan, then /implement to start the TDD cycle.
 AWAITING YOUR APPROVAL
 ```
 
+## State Tracking
+
+On start: Update `.vibe/state.json` — set phase to "test_plan".
+On completion: Update phase to "test_plan_complete", save test count.
+
 ## Rules
 
 - One test per AC minimum. Fewer = AC is too vague, push back.
 - Don't write the test code here — just the matrix.
 - Prefer unit > integration > E2E. Only go higher when the AC demands it.
 - If the spec has no ACs, stop and ask for ACs before planning tests.
+
+## Error Recovery
+- **Spec not found:** Ask user for the spec file location, or offer to create one with `/spec`.
+- **Spec has no ACs:** STOP. Tell the user: "This spec has no acceptance criteria. I can't plan tests without them." Do not guess test shapes.
+- **AC is untestable as written:** Flag it specifically. Propose a rewrite that's testable. Wait for approval before including in the plan.
+- **Testing framework not configured:** Report what's missing (e.g., "No test runner found — need Jest, Vitest, or similar"). Don't proceed until resolved.
+- **Too many ACs (>10):** Suggest splitting the feature. But plan all of them if user insists.
+- **Conflicting ACs:** Flag the conflict. Ask user to clarify which behavior is correct.

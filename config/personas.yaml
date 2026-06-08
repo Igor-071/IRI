@@ -1,3 +1,8 @@
+# =============================================================================
+# REFERENCE ONLY — Persona definitions are authoritative in CLAUDE.md.
+# Claude does NOT read YAML files.
+# =============================================================================
+#
 # Vibecoding Workflow - AI Team Personas
 #
 # This workflow uses 2 AI personas that collaborate on development:

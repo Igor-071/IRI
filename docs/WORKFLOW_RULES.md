@@ -1,4 +1,6 @@
-# Vibecoding Workflow Rules
+# Vibecoding Workflow Rules (v2.0)
+
+> **CLAUDE.md is the single source of truth.** This document is a detailed reference that expands on the rules defined there.
 
 Complete reference for the development workflow. For philosophy and principles, see [METHODOLOGY.md](./METHODOLOGY.md).
 
@@ -6,16 +8,73 @@ Complete reference for the development workflow. For philosophy and principles, 
 
 ## Table of Contents
 
-1. [Development Phases](#development-phases)
-2. [Acceptance Criteria Format](#acceptance-criteria-format)
-3. [Traceability Matrix](#traceability-matrix)
-4. [Quality Gates](#quality-gates)
-5. [Feature Delivery Format](#feature-delivery-format)
-6. [Bug Handling Workflow](#bug-handling-workflow)
-7. [Git Workflow](#git-workflow)
-8. [Documentation Workflow](#documentation-workflow)
-9. [Team Personas](#team-personas)
-10. [Critical Rules](#critical-rules)
+1. [Adaptive Tier System](#adaptive-tier-system)
+2. [Commands](#commands)
+3. [Development Phases](#development-phases)
+4. [Acceptance Criteria Format](#acceptance-criteria-format)
+5. [Traceability Matrix](#traceability-matrix)
+6. [Quality Gates](#quality-gates)
+7. [Feature Delivery Format](#feature-delivery-format)
+8. [Bug Handling Workflow](#bug-handling-workflow)
+9. [Git Workflow](#git-workflow)
+10. [Documentation Workflow](#documentation-workflow)
+11. [Team Personas](#team-personas)
+12. [Workflow State](#workflow-state)
+13. [Memory Integration](#memory-integration)
+14. [Parallel Workflows](#parallel-workflows)
+15. [Critical Rules](#critical-rules)
+
+---
+
+## Adaptive Tier System
+
+The workflow adapts ceremony to complexity. Every request goes through: Detect → Propose Tier → Confirm → Execute → Track.
+
+| Tier | Ceremony Level | When to Use | Gates |
+|------|---------------|-------------|-------|
+| **MINIMAL** | Lint only | Typos, copy, styling, config | Lint |
+| **LIGHT** | Test + Fix | Bug fixes, small additions, refactoring | Lint + Tests |
+| **STANDARD** | Full 5-phase | New features, significant changes | 5 (prototype) or 10 (production) |
+| **FULL** | Full + extras | Epics, architecture, security, migrations | All 10 + architecture review |
+| **EMERGENCY** | Critical path | Production down, security vulnerability | Critical tests only |
+
+Auto-detection uses keyword signals, scope estimation, and file count. Users can always override with `--minimal`, `--light`, `--standard`, `--full`.
+
+---
+
+## Commands
+
+### Primary: `/vibe` (alias: `/v`)
+
+| Command | Default Tier | Description |
+|---------|-------------|-------------|
+| `/vibe tweak <desc>` | MINIMAL | Small change |
+| `/vibe fix <desc>` | LIGHT | Bug fix |
+| `/vibe update <desc>` | LIGHT | Update existing |
+| `/vibe refactor <desc>` | LIGHT | Refactoring |
+| `/vibe add <desc>` | STANDARD | Add functionality |
+| `/vibe feature <desc>` | STANDARD | New feature |
+| `/vibe epic <desc>` | FULL | Major feature |
+| `/vibe hotfix <desc>` | EMERGENCY | Production fire |
+
+### Workflow Control
+
+| Command | Action |
+|---------|--------|
+| `/vibe status` | Show current state |
+| `/vibe pause` | Save and pause |
+| `/vibe resume` | Resume from saved state |
+| `/vibe approve` | Approve current phase |
+| `/vibe abort` | Abort workflow |
+
+### Shortcuts
+
+| Command | Action |
+|---------|--------|
+| `/fix <desc>` | Quick fix (MINIMAL/LIGHT) |
+| `/status` | Workflow status |
+| `/getting-started` | Interactive onboarding |
+| `/worktree start <name>` | Parallel feature |
 
 ---
 
@@ -525,27 +584,82 @@ When user says "approved", "green light", or "looks good":
 
 ---
 
+## Workflow State
+
+State is tracked in `.vibe/state.json` (gitignored). Every skill reads and updates it.
+
+- **On start:** Create state entry with feature name, tier, phase
+- **On phase completion:** Update phase, AC status, gate results
+- **On pause:** Save current position and notes
+- **On resume:** Read state, report where we left off, continue
+- **On completion:** Move to history, clear active workflow
+
+Use `/status` to see current state at any time.
+
+---
+
+## Memory Integration
+
+The memory MCP server enables learning across sessions.
+
+**Saved after workflows:**
+- Feature name, tier used, gates passed/failed, issues encountered
+- User's tier override patterns
+
+**Saved after bug fixes:**
+- Bug category, root cause pattern, prevention measure
+
+**Recalled before new work:**
+- Similar past features and their tiers
+- Lessons learned that apply
+- User preferences
+
+---
+
+## Parallel Workflows
+
+Use `/worktree` to manage parallel feature development via git worktrees.
+
+| Command | Action |
+|---------|--------|
+| `/worktree start <name>` | Create branch + worktree |
+| `/worktree list` | Show all parallel workflows |
+| `/worktree switch <name>` | Switch context |
+| `/worktree merge <name>` | Merge back (after gates pass) |
+| `/worktree clean` | Remove completed worktrees |
+
+Rules:
+- Each worktree gets its own branch
+- Never merge without user approval
+- Run gates before merge
+- Maximum 3 recommended
+
+---
+
 ## Critical Rules
 
 ### NEVER
 
-1. Write code without an approved spec
-2. Skip Given/When/Then format for acceptance criteria
-3. Proceed without explicit user approval at phase gates
-4. Commit or push without user instruction
-5. Skip quality gates
-6. Fix bugs without root cause analysis
-7. Ship features without documentation
+1. Apply FULL ceremony to a typo fix (use MINIMAL)
+2. Apply MINIMAL ceremony to a new feature (use STANDARD+)
+3. Skip Given/When/Then format for acceptance criteria (STANDARD+ tiers)
+4. Proceed without explicit user approval at phase gates
+5. Commit or push without user instruction
+6. Skip quality gates for the active tier
+7. Fix bugs without root cause analysis (use `/bug`)
+8. Force push, reset --hard, or clean -f
 
 ### ALWAYS
 
-1. Write failing tests before implementation
-2. Update traceability matrix during implementation
-3. Present features using standard delivery format
-4. Stop and wait for user approval
-5. Generate documentation on feature approval
-6. Use Conventional Commits format
-7. Create post-mortems for bugs
+1. Match ceremony to complexity — use the right tier
+2. Write failing tests before implementation (LIGHT+ tiers)
+3. Update traceability matrix (STANDARD+ tiers)
+4. Stop and wait for user approval at phase gates
+5. Generate documentation on feature approval (STANDARD+ tiers)
+6. Update `.vibe/state.json` during workflows
+7. Save lessons to memory after completing workflows
+8. Use `use context7` with framework/library APIs
+9. Create post-mortems for bugs
 
 ---
 
@@ -557,13 +671,18 @@ Skills are slash commands that encode each workflow phase. Invoke them in Claude
 
 | Skill | Command | Activates When |
 |-------|---------|----------------|
-| Spec | `/spec` | User asks to build a feature |
-| Test Plan | `/test-plan` | Spec is approved, before implementation |
-| Implement | `/implement` | Test plan is approved |
-| Review | `/review` | Implementation is complete |
-| Ship | `/ship` | Review passes, ready to commit/PR |
-| Bug | `/bug` | A bug is found or reported |
-| Mock Data Doc | `/mock-data-doc` | Prototype handoff — documents all mocked data for backend team |
+| **Vibe** | `/vibe` | **Primary entry point — auto-detects tier and routes** |
+| **Fix** | `/fix` | Quick fix — MINIMAL or LIGHT tier |
+| **Status** | `/status` | Show current workflow state |
+| **Getting Started** | `/getting-started` | Interactive onboarding for new users |
+| **Worktree** | `/worktree` | Parallel feature development |
+| Spec | `/spec` | Create specification (STANDARD+ tier) |
+| Test Plan | `/test-plan` | Plan tests (STANDARD+ tier) |
+| Implement | `/implement` | TDD implementation (STANDARD+ tier) |
+| Review | `/review` | Run quality gates (STANDARD+ tier) |
+| Ship | `/ship` | Commit + PR (any tier) |
+| Bug | `/bug` | Bug analysis with 5 Whys |
+| Mock Data Doc | `/mock-data-doc` | Prototype handoff doc |
 
 Skills live in `.claude/skills/[name]/SKILL.md`. Each file is the complete, self-contained instruction set for that phase. The **review skill is the authoritative definition of quality gates** — CLAUDE.md and docs reference its gate names.
 

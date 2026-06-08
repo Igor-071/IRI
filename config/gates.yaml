@@ -1,3 +1,8 @@
+# =============================================================================
+# REFERENCE ONLY — Gate definitions are authoritative in CLAUDE.md
+# and .claude/skills/review/SKILL.md. Claude does NOT read YAML files.
+# =============================================================================
+#
 # Vibecoding Workflow 2.0 - Quality Gates Configuration
 # Defines all quality gates and their requirements
 

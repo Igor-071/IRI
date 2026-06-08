@@ -10,7 +10,7 @@ Welcome to the project documentation. This folder contains all workflow document
 |----------|---------|
 | [METHODOLOGY.md](./METHODOLOGY.md) | Core philosophy and principles (the "why") |
 | [WORKFLOW_RULES.md](./WORKFLOW_RULES.md) | Complete workflow reference (the "how") |
-| [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) | Daily cheat sheet — skills, gates, commit format |
+| [QUICK_REFERENCE.md](./QUICK_REFERENCE.md) | Daily cheat sheet — tiers, commands, gates |
 
 ---
 
@@ -29,146 +29,91 @@ Welcome to the project documentation. This folder contains all workflow document
 
 ```
 docs/
-├── README.md              ← You are here
-├── METHODOLOGY.md         ← Philosophy & principles
-├── WORKFLOW_RULES.md      ← Complete workflow reference
-├── QUICK_REFERENCE.md     ← Daily cheat sheet
-├── SPEC_TEMPLATE.md       ← Feature specification template
+├── README.md              <- You are here
+├── METHODOLOGY.md         <- Philosophy & principles
+├── WORKFLOW_RULES.md      <- Complete workflow reference
+├── QUICK_REFERENCE.md     <- Daily cheat sheet
+├── SPEC_TEMPLATE.md       <- Feature specification template
+├── IMPLEMENTATION_PLAN.md <- v2.0 implementation plan
 │
-├── specs/                 ← Feature specifications (INPUT)
+├── specs/                 <- Feature specifications (INPUT)
 │   └── [feature-name].md
 │
-├── reviews/               ← Quality reviews (QA)
+├── reviews/               <- Quality reviews (QA)
 │   ├── REVIEW_TEMPLATE.md
 │   └── [feature-name].md
 │
-├── features/              ← Feature documentation (OUTPUT)
+├── features/              <- Feature documentation (OUTPUT)
 │   ├── FEATURE_DOC_TEMPLATE.md
 │   └── [feature-name].md
 │
-└── bugs/                  ← Bug post-mortems
+└── bugs/                  <- Bug post-mortems
     ├── BUG_POSTMORTEM_TEMPLATE.md
     └── BUG-[ID]-[name].md
 ```
 
 ---
 
-## Documentation Flow
-
-```
-1. SPEC (Input)
-   docs/specs/[feature].md
-   ↓
-   Created BEFORE coding
-   User approval required
-
-2. REVIEW (QA)
-   docs/reviews/[feature].md
-   ↓
-   Created AFTER implementation
-   All quality gates must pass
-
-3. FEATURE DOCS (Output)
-   docs/features/[feature].md
-   ↓
-   AUTO-GENERATED on user approval
-   Both technical and user-facing docs
-```
-
----
-
-## For Bugs
-
-```
-Bug Found
-   ↓
-docs/bugs/BUG-[ID]-[name].md
-   ↓
-- 5 Whys analysis
-- Regression test first
-- Fix and verify
-- Prevention measures
-```
-
----
-
 ## Skills (Slash Commands)
 
-Type these in Claude Code — no manual file copying needed:
+Type these in Claude Code:
+
+### Primary (v2.0)
 
 | Command | When |
 |---------|------|
-| `/spec` | Starting a new feature |
+| `/vibe <description>` | Start any workflow — auto-detects tier |
+| `/fix <description>` | Quick fix — MINIMAL or LIGHT tier |
+| `/status` | Show current workflow state |
+| `/getting-started` | Interactive onboarding for new users |
+| `/worktree start <name>` | Start parallel feature development |
+
+### Standard Workflow
+
+| Command | When |
+|---------|------|
+| `/spec` | Starting a new feature (STANDARD+ tier) |
 | `/test-plan` | After spec is approved |
-| `/implement` | After test plan is approved |
-| `/review` | After implementation |
-| `/ship` | After review passes |
-| `/bug` | When a bug is found |
-| `/mock-data-doc` | When prototype is done — generates backend handoff doc |
-
----
-
-## MOP Next.js Foundation
-
-```bash
-./scripts/add-mop-foundation.sh         # pull latest
-./scripts/add-mop-foundation.sh v1.2.0  # pin to release
-```
-
-Pulls the latest [MOP Next.js foundation](https://github.com/ministryofprogramming/mop-foundation-nextjs)
-without touching your workflow files. Re-run any time to update.
-
-## MOP React Native Foundation
-
-```bash
-./scripts/add-mop-foundation-rn.sh         # pull latest
-./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to release
-```
-
-Pulls the latest [MOP React Native foundation](https://github.com/ministryofprogramming/mop-foundation-react-native)
-without touching your workflow files. Uses pnpm as its package manager.
-Re-run any time to update.
-
-### Emulator Setup
-
-To run the app on iOS and Android emulators:
-
-**iOS (macOS only):**
-1. Install Xcode (Mac App Store) + Command Line Tools (`xcode-select --install`)
-2. Open Xcode once to accept license and install simulator
-3. `pnpm ios`
-
-**Android:**
-1. Install [Android Studio](https://developer.android.com/studio) with SDK + Emulator
-2. Create a virtual device (Virtual Device Manager → pick phone → download image)
-3. Set env vars in `~/.zshrc`:
-   ```bash
-   export ANDROID_HOME=$HOME/Library/Android/sdk
-   export PATH=$PATH:$ANDROID_HOME/emulator
-   export PATH=$PATH:$ANDROID_HOME/platform-tools
-   ```
-4. `pnpm android`
-
-**During dev:** `pnpm start` then press `i` (iOS), `a` (Android), or `r` (reload).
-
-See the [main README](../README.md#emulator-setup-ios--android) for full details.
+| `/implement` | After test plan is approved — TDD cycle |
+| `/review` | After implementation — run quality gates |
+| `/ship` | After review passes — commit + PR |
+| `/bug` | When a bug is found — 5 Whys + regression test |
+| `/mock-data-doc` | Prototype handoff — document all mocked data |
 
 ---
 
 ## Getting Started
 
-1. **New Feature?**
-   - Type `/spec` in Claude Code — it creates `specs/[feature-name].md` for you
+1. **New user?**
+   - Type `/getting-started` in Claude Code for an interactive walkthrough
+
+2. **Quick fix?**
+   - Type `/fix <description>` or `/vibe fix <description>`
+
+3. **New Feature?**
+   - Type `/vibe feature <description>` or `/spec`
    - Get approval, then `/test-plan`, then `/implement`
 
-2. **Implementation Done?**
-   - Type `/review` — Claude runs all quality gates and creates `reviews/[feature-name].md`
+4. **Check status?**
+   - Type `/status` to see current workflow state
 
-3. **Bug Found?**
-   - Type `/bug` — Claude runs 5 Whys and creates `bugs/BUG-[ID]-[name].md`
+5. **Implementation Done?**
+   - Type `/review` — Claude runs quality gates
 
-4. **Prototype approved, handing off to backend?**
-   - Type `/mock-data-doc` — Claude writes `MOCKED_DATA_STRUCTURE.md` for the backend team
+6. **Bug Found?**
+   - Type `/bug` — Claude runs 5 Whys analysis
+
+7. **Prototype approved, handing off to backend?**
+   - Type `/mock-data-doc` — generates backend handoff doc
+
+---
+
+## MOP Foundations
+
+```bash
+./scripts/add-mop-foundation.sh         # Next.js
+./scripts/add-mop-foundation-rn.sh      # React Native (pnpm)
+```
 
 ---
 

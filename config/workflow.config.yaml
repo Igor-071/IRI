@@ -1,3 +1,8 @@
+# =============================================================================
+# REFERENCE ONLY — The authoritative config is in CLAUDE.md
+# Claude does NOT read YAML files. This exists for human reference.
+# =============================================================================
+#
 # Vibecoding Workflow Configuration
 # Customize this file for your project
 #

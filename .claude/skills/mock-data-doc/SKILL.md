@@ -194,3 +194,12 @@ The doc is a handoff artifact. Suggest the user:
 1. Review it for accuracy
 2. Add any business context the mock doesn't capture (e.g., "orders can only be placed M-F")
 3. Commit it to `docs/` so the backend team has it
+
+## Error Recovery
+- **No mock data found:** Report all locations searched. Ask user: "Where do your mocks live? I checked [locations] and found nothing." Don't generate an empty doc.
+- **Mock shapes are ambiguous (unknown types, unclear nullability):** Mark those fields explicitly as "type unclear — backend team decide." Never guess types.
+- **Mock data is scattered across 20+ files:** Group output by entity, not by file. Note all source file paths in each entity section.
+- **Relationships between mocks are unclear:** Document what you see. Flag as "relationship unclear — backend team verify." Don't invent foreign keys.
+- **Hardcoded values in components (not in mock files):** Include them. Note: "Found inline in [component] — not in a dedicated mock file." These are easy to miss.
+- **Mock uses localStorage/sessionStorage:** Document the storage keys, data shapes, and lifecycle (when set, when cleared). This is important for the backend team.
+- **Existing MOCKED_DATA_STRUCTURE.md found:** Ask user: "A mock data doc already exists. Should I regenerate it (overwrite) or update it (append new entities)?"

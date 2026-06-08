@@ -1,18 +1,58 @@
 # Quick Reference
 
-Daily cheat sheet for the Vibecoding Workflow.
+Daily cheat sheet for the Vibecoding Workflow v2.0.
 
 ---
 
-## Workflow Phases
+## Adaptive Tier System
+
+| Tier | When | Phases | Gates |
+|------|------|--------|-------|
+| **MINIMAL** | Typos, copy, styling | Change → Lint | Lint only |
+| **LIGHT** | Bug fixes, small additions | Understand → Test → Fix → Verify | Lint + Tests |
+| **STANDARD** | New features | Spec → Test Plan → TDD → Review → Present | 5 or 10 gates |
+| **FULL** | Epics, architecture | Spec → Test Plan → TDD → Review → Docs → Present | All gates |
+| **EMERGENCY** | Production down | Reproduce → Fix → Critical Test → Deploy | Critical only |
+
+---
+
+## Commands
 
 ```
-Phase 1: SPEC        → Write Given/When/Then spec → Wait for approval
-Phase 2: TEST PLAN   → Plan tests for each AC
-Phase 3: IMPLEMENT   → TDD: Red-Green-Blue
-Phase 4: REVIEW      → All 10 quality gates must pass
-Phase 5: USER TEST   → Present → STOP & WAIT → Generate docs on approval
+/vibe <description>          Auto-detect tier and begin
+/vibe fix <description>      Bug fix (LIGHT)
+/vibe tweak <description>    Small change (MINIMAL)
+/vibe feature <description>  New feature (STANDARD)
+/vibe epic <description>     Major feature (FULL)
+/vibe hotfix <description>   Production fire (EMERGENCY)
+
+/vibe status                 Show current workflow state
+/vibe pause                  Save and pause
+/vibe resume                 Resume from saved state
+
+/fix <description>           Quick fix shortcut (MINIMAL/LIGHT)
+/status                      Workflow status
+/getting-started             Interactive onboarding
+/worktree start <name>       Start parallel feature
 ```
+
+### Tier Overrides
+
+Append to any command: `--minimal`, `--light`, `--standard`, `--full`
+
+---
+
+## Legacy Skills (Still Work)
+
+| Command | When to Use |
+|---------|-------------|
+| `/spec` | Create specification (STANDARD+ tier) |
+| `/test-plan` | Plan test matrix (STANDARD+ tier) |
+| `/implement` | TDD implementation (STANDARD+ tier) |
+| `/review` | Run quality gates (STANDARD+ tier) |
+| `/ship` | Commit + PR (any tier) |
+| `/bug` | Bug analysis (any tier) |
+| `/mock-data-doc` | Backend handoff doc |
 
 ---
 
@@ -41,27 +81,21 @@ BLUE  → Refactor, keep tests passing
 
 ---
 
-## Quality Gates Checklist
+## Quality Gates by Tier
 
-**Prototype Mode (always required):**
-
-| Gate | Check |
-|------|-------|
-| Tests pass | `npm run test` — 0 failures |
-| Lint clean | `npm run lint` — 0 warnings |
-| All ACs met | Every AC has a passing test |
-| Responsive | 320/375/768/1024/1440px |
-| Code review | No dead code, hardcoded values, boundary errors |
-
-**Production Mode (adds 5 more):**
-
-| Gate | Check |
-|------|-------|
-| Performance | Lighthouse > 90 |
-| Accessibility | WCAG 2.1 AA |
-| Cross-browser | Chrome, Safari, Firefox |
-| Build succeeds | `npm run build` — 0 errors |
-| Security scan | XSS, injection, secrets in env vars |
+| Gate | MINIMAL | LIGHT | STANDARD | FULL |
+|------|---------|-------|----------|------|
+| Lint | Yes | Yes | Yes | Yes |
+| Tests | - | Yes | Yes | Yes |
+| ACs met | - | - | Yes | Yes |
+| Responsive | - | Optional | Yes | Yes |
+| Code review | - | - | Yes | Yes |
+| Performance | - | - | Prod only | Yes |
+| Accessibility | - | - | Prod only | Yes |
+| Cross-browser | - | - | Prod only | Yes |
+| Build | - | - | Prod only | Yes |
+| Security | - | - | Prod only | Yes |
+| Visual | - | Optional | Optional | Yes |
 
 ---
 
@@ -70,31 +104,28 @@ BLUE  → Refactor, keep tests passing
 ```markdown
 | Criterion | Test File | Test Name | Status |
 |-----------|-----------|-----------|--------|
-| AC-001 | `file.test.ts` | `test name` | ⏳/✅/❌ |
+| AC-001 | `file.test.ts` | `test name` | PASS/FAIL/PENDING |
 ```
 
 ---
 
 ## Feature Delivery Format
 
-```markdown
-## FEATURE COMPLETE: [Name]
+```
+FEATURE COMPLETE: [Name]
+TIER: [MINIMAL | LIGHT | STANDARD | FULL]
 
-### What Was Built
-[Description]
+WHAT WAS BUILT: [Description]
 
-### Acceptance Criteria Status
-| Criterion | Status |
-|-----------|--------|
-| AC-001 | PASSED |
+ACCEPTANCE CRITERIA:
+- AC-001: [description] — PASSED
 
-### Quality Gates
-All PASSED
+QUALITY GATES: ALL PASSED
 
-### How to Test
+HOW TO TEST:
 1. [Steps]
 
-**AWAITING YOUR APPROVAL**
+AWAITING YOUR APPROVAL
 ```
 
 ---
@@ -109,7 +140,7 @@ All PASSED
 5. FIX      → Minimal fix
 6. VERIFY   → Run tests
 7. REVIEW   → Quality check
-8. CLOSE    → Update post-mortem
+8. CLOSE    → Update post-mortem, save to memory
 ```
 
 ---
@@ -134,11 +165,8 @@ All PASSED
 
 ## Approval Triggers
 
-When user says any of these, generate docs and mark complete:
-- "Approved"
-- "Green light"
-- "Looks good"
-- "Ship it"
+"approved", "looks good", "green light", "ship it", "lgtm"
+→ Approve current phase and proceed
 
 ---
 
@@ -150,92 +178,53 @@ When user says any of these, generate docs and mark complete:
 | Reviews | `docs/reviews/[feature].md` |
 | Feature Docs | `docs/features/[feature].md` |
 | Bug Post-mortems | `docs/bugs/[bug-id].md` |
+| Workflow State | `.vibe/state.json` |
 
 ---
 
 ## Critical Rules
 
 **NEVER:**
-- Code without approved spec
-- Skip Given/When/Then
-- Proceed without approval
-- Auto-commit or auto-push
-- Skip quality gates
+- Apply FULL ceremony to a typo (use MINIMAL)
+- Apply MINIMAL ceremony to a feature (use STANDARD+)
+- Commit or push without user instruction
+- Skip quality gates for the active tier
+- Force push, reset --hard, or clean -f
 
 **ALWAYS:**
-- Tests before code
-- Update traceability
-- Stop & Wait for approval
-- Generate docs on approval
-- Post-mortem for bugs
+- Match ceremony to complexity
+- Tests before code (LIGHT+ tiers)
+- Stop & Wait for approval at phase gates
+- Update `.vibe/state.json` during workflows
+- Use `use context7` with framework/library APIs
 
 ---
 
 ## Tooling
 
-### Skills (Slash Commands)
-
-| Command | When to Use |
-|---------|-------------|
-| `/spec` | Starting a new feature — creates spec in `docs/specs/` |
-| `/test-plan` | After spec is approved — produces test matrix in the spec file |
-| `/implement` | After test plan is approved — TDD cycle |
-| `/review` | After implementation — runs all quality gates |
-| `/ship` | After review passes — commit + PR |
-| `/bug` | When a bug is found — root cause + regression test |
-| `/mock-data-doc` | When a prototype is done — generates `docs/MOCKED_DATA_STRUCTURE.md` for backend handoff |
-
-Skills live in `.claude/skills/[name]/SKILL.md`.
-
 ### Hooks (Automatic)
-
-Configured in `.claude/settings.json` — no action needed:
 
 | Hook | Trigger | What it does |
 |------|---------|--------------|
-| Auto-lint | Every Write/Edit on `.js/.ts/.tsx` | Runs `eslint --fix` on the file |
+| Auto-lint | Every Write/Edit on `.js/.ts/.tsx` | Runs `eslint --fix` |
 | Pre-commit | Every `git commit` | Runs `npm run lint && npm run test` |
 
 ### MCP Servers
 
-Configured in `.mcp.json`:
-
 | Server | Purpose | Activation |
 |--------|---------|------------|
-| `context7` | Live framework/library docs | Add `use context7` to any prompt |
-| `playwright` | Browser automation, E2E, responsive | Available automatically |
-| `github` | Issues, PRs, code search | Requires `GITHUB_TOKEN` env var |
-| `sequential-thinking` | Structured architecture reasoning | Available automatically |
+| `context7` | Live framework/library docs | Add `use context7` to prompt |
+| `playwright` | Browser automation, responsive | Available automatically |
+| `github` | Issues, PRs, code search | Requires `GITHUB_TOKEN` |
+| `sequential-thinking` | Architecture reasoning | Available automatically |
 | `memory` | Persistent knowledge across sessions | Available automatically |
-
-### use context7
-
-Add `use context7` to any prompt involving a framework or library:
-
-```
-"Build a login form with React Hook Form, use context7"
-"Configure Vite for SSR, use context7"
-```
 
 ### MOP Foundations
 
-**Next.js** — pulls from `ministryofprogramming/mop-foundation-nextjs` via
-`degit`. Workflow files are preserved.
-
 ```bash
-./scripts/add-mop-foundation.sh         # pull latest main
-./scripts/add-mop-foundation.sh v1.2.0  # pin to tag/branch/commit
+./scripts/add-mop-foundation.sh         # Next.js
+./scripts/add-mop-foundation-rn.sh      # React Native (pnpm)
 ```
-
-**React Native** — pulls from `ministryofprogramming/mop-foundation-react-native`
-via `degit`. Uses pnpm. Workflow files are preserved.
-
-```bash
-./scripts/add-mop-foundation-rn.sh         # pull latest main
-./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to tag/branch/commit
-```
-
-Re-run any time to update.
 
 ### Personal Preferences
 

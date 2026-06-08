@@ -61,3 +61,17 @@ git push -u origin feature-branch-name
 ```
 
 Never merge worktree branches without user approval.
+
+## State Tracking
+
+On start: Update `.vibe/state.json` — set phase to "shipping".
+On completion: Move workflow to history with result "shipped".
+
+## Error Recovery
+- **Pre-commit hook fails (lint or test):** Fix the issue. Stage the fix. Create a NEW commit (never `--amend` — amend modifies the previous commit, which may not be yours).
+- **Push fails (non-fast-forward):** There are remote changes. Report the conflict to user. Ask how to resolve (pull + rebase, or force push). Never force push without explicit user instruction.
+- **PR creation fails:** Check `gh auth status`. If not authenticated, tell user to run `gh auth login`. If repo not found, verify remote URL.
+- **Branch doesn't exist on remote:** Create it with `git push -u origin <branch-name>`.
+- **Unstaged changes mixed with staged:** Report what's staged vs unstaged. Ask user which files to include. Don't guess.
+- **No changes to commit:** Report "Nothing to commit — working tree clean." Don't create an empty commit.
+- **User wants to push to main/master directly:** Warn that this bypasses PR review. Ask for confirmation. If they insist, comply but note the risk.

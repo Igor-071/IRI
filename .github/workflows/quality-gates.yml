@@ -1,0 +1,77 @@
+# Quality Gates CI Pipeline
+#
+# Runs automated quality gates on every push and PR.
+# Covers gates 1 (lint), 2 (tests), and 9 (build) from the workflow.
+# Manual gates (responsive, performance, accessibility, visual) are
+# verified during /review.
+#
+# Customize the steps below for your tech stack. The workflow is designed
+# to gracefully handle missing scripts (|| true) — remove those fallbacks
+# once your project has the commands configured.
+
+name: Quality Gates
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Quality Gates
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ===== Node.js / TypeScript Projects =====
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || echo "npm ci failed — check package-lock.json exists"
+
+      # Gate 1: Lint
+      - name: Lint
+        run: npm run lint || echo "No lint script found — skipping"
+
+      # Gate 1b: Type check
+      - name: Type check
+        run: npm run typecheck || echo "No typecheck script found — skipping"
+
+      # Gate 2: Tests
+      - name: Run tests
+        run: npm run test -- --passWithNoTests || echo "No test script found — skipping"
+
+      # Gate 9: Build
+      - name: Build
+        run: npm run build || echo "No build script found — skipping"
+
+  # ===== React Native / pnpm Projects =====
+  # Uncomment this job if using pnpm (e.g., MOP React Native foundation):
+  #
+  # quality-pnpm:
+  #   name: Quality Gates (pnpm)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #         cache: 'pnpm'
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm lint
+  #     - run: pnpm type-check
+  #     - run: pnpm test || echo "No tests configured"

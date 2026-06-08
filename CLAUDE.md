@@ -1,6 +1,6 @@
-# CLAUDE.md - Vibecoding Workflow Instructions
+# CLAUDE.md - Vibecoding Workflow v2.0
 
-This file provides instructions to Claude Code for how to work on this project.
+This file is the **single source of truth** for how Claude Code works on this project.
 
 ## Project Overview
 
@@ -9,129 +9,255 @@ This file provides instructions to Claude Code for how to work on this project.
 **Type:** [web | mobile | backend | fullstack | cli]
 **Stack:** [TECH_STACK]
 
-## Development Approach
-
 ### If PROTOTYPE mode:
-- **Focus:** Frontend-only, fast iteration
-- **Backend:** Mock data, local storage
-- **Quality Gates:** 5 essential gates only
-- **Goal:** Validate ideas, get visual feedback quickly
+- Frontend-only, fast iteration, mock data, 5 quality gates
+- Goal: Validate ideas, get visual feedback quickly
 
 ### If PRODUCTION mode:
-- **Focus:** Full-stack, complete solution
-- **Backend:** Real database, APIs, authentication
-- **Quality Gates:** All 10 gates mandatory
-- **Goal:** Ship reliable, production-ready software
+- Full-stack, real database/APIs/auth, all 10 quality gates
+- Goal: Ship reliable, production-ready software
 
-## Workflow Methodology
+---
 
-This project follows **Spec-Driven Development with BDD-style Acceptance Criteria**.
+## Adaptive Tier System
 
-### Core Principles
+Not every change deserves a spec. But every feature does. The workflow adapts ceremony to complexity.
 
-1. **Spec First** - Never write code without an approved specification
-2. **Given/When/Then** - All acceptance criteria use BDD format
-3. **TDD** - Write failing tests before implementation (Red-Green-Blue)
-4. **Traceability** - Every spec criterion has a matching test
-5. **Stop & Wait** - Always wait for explicit user approval
-6. **Manual Git** - Never commit or push without user instruction
-7. **Context7** - Add `use context7` when using any framework/library to get current docs
+### How It Works
+
+1. **Detect** — Analyze the request (keywords, scope, file count)
+2. **Propose** — Suggest a tier with reasoning
+3. **Confirm** — User accepts or overrides
+4. **Execute** — Run that tier's phases
+5. **Track** — Save state to `.vibe/state.json`
+
+### Tier Definitions
+
+| Tier | When | Phases | Gates |
+|------|------|--------|-------|
+| **MINIMAL** | Typos, copy, styling, config | Change → Lint | Lint only |
+| **LIGHT** | Bug fixes, small additions, refactoring | Understand → Test → Fix → Verify | Lint + Tests |
+| **STANDARD** | New features, significant changes | Spec → Test Plan → Implement(TDD) → Review → Present | 5 gates (prototype) or 10 (production) |
+| **FULL** | Epics, architecture, security, migrations | Spec → Test Plan → Implement(TDD) → Review → Document → Present | All 10 gates + architecture review |
+| **EMERGENCY** | Production down, critical security | Reproduce → Fix → Critical Test → Deploy | Critical tests only, postmortem within 24h |
+
+### MINIMAL Tier
+1. Read the file
+2. Make the change
+3. Run lint (`npm run lint`)
+4. Report: done, lint clean
+
+### LIGHT Tier
+1. Understand the issue (read relevant code)
+2. Write a failing test (if testable — skip for pure styling)
+3. Make the fix (minimum change)
+4. Run tests + lint
+5. Report results
+6. **STOP** — Wait for user approval
+
+### STANDARD Tier
+1. **Spec** — Create `docs/specs/[feature].md` with Given/When/Then ACs → **STOP & WAIT**
+2. **Test Plan** — Plan test matrix, append to spec → **STOP & WAIT**
+3. **Implement** — TDD cycle: RED → GREEN → BLUE for each AC
+4. **Review** — Run quality gates (5 prototype / 10 production)
+5. **Present** — Show results → **STOP & WAIT** for approval
+6. On approval: generate feature docs
+
+### FULL Tier
+Same as STANDARD, plus:
+- Spec includes technical design, security, performance sections
+- Architecture review gate
+- Security review gate (if auth/data changes)
+- Generate comprehensive documentation
+- Quality Lead persona active throughout
+
+### EMERGENCY Tier
+1. Reproduce the issue
+2. Write regression test
+3. Fix (minimal, targeted)
+4. Run critical tests only
+5. Ship immediately with user approval
+6. Schedule postmortem within 24 hours
+7. Create `docs/bugs/BUG-[number]-[name].md` after the fix
+
+### Auto-Detection Algorithm
+
+When a request comes in, classify it:
+
+**MINIMAL signals:** typo, spelling, grammar, copy, wording, rename, color, padding, margin, config change, env variable, single-line change, "change X to Y"
+
+**LIGHT signals:** fix, bug, broken, crash, error, wrong, add a button, small component, refactor, extract, move, 1-3 files affected, 10-100 lines estimated
+
+**STANDARD signals:** feature, implement, build, create, add (new functionality), form, page, API endpoint, database, 3-10 files, 100-500 lines
+
+**FULL signals:** epic, major, architecture, redesign, migration, security overhaul, system, platform, 10+ files, 500+ lines
+
+**EMERGENCY signals:** urgent, critical, production down, security vulnerability, data breach, users affected, hotfix
+
+**Rules:**
+- If explicit tier flag (`--minimal`, `--light`, `--standard`, `--full`) → use that tier
+- If explicit command type → use its default tier (see Commands below)
+- Emergency keywords always override to EMERGENCY
+- When ambiguous → ask the user
+- User can always override: "Actually, make this STANDARD"
+
+---
+
+## Commands
+
+### Primary: `/vibe` (alias: `/v`)
+
+```
+/vibe fix <description>        → LIGHT (default)
+/vibe tweak <description>      → MINIMAL (default)
+/vibe update <description>     → LIGHT (default)
+/vibe add <description>        → STANDARD (default)
+/vibe refactor <description>   → LIGHT (default)
+/vibe feature <description>    → STANDARD (default)
+/vibe epic <description>       → FULL (default)
+/vibe hotfix <description>     → EMERGENCY
+```
+
+### Tier Overrides
+
+Append to any command:
+```
+--minimal    Force MINIMAL tier
+--light      Force LIGHT tier
+--standard   Force STANDARD tier
+--full       Force FULL tier
+--skip-test  Skip tests (MINIMAL only)
+--with-spec  Add spec phase to LIGHT
+--with-review Add review phase to LIGHT
+```
+
+### Workflow Control
+```
+/vibe status     Show current workflow state
+/vibe pause      Save state and pause
+/vibe resume     Resume from saved state
+/vibe approve    Approve current phase
+/vibe abort      Abort current workflow
+```
+
+### Legacy Skills (still work)
+```
+/spec            Create specification (STANDARD+ tier)
+/test-plan       Plan tests (STANDARD+ tier)
+/implement       TDD implementation (STANDARD+ tier)
+/review          Run quality gates (STANDARD+ tier)
+/ship            Commit + PR (any tier)
+/bug             Bug analysis (any tier)
+/mock-data-doc   Backend handoff doc
+/fix             Quick fix (MINIMAL/LIGHT)
+/status          Workflow status
+/getting-started Interactive onboarding
+/worktree        Parallel workflow management
+```
+
+### Natural Language Triggers
+
+**Approval:** "approved", "looks good", "green light", "ship it", "lgtm"
+→ Approve current phase and proceed
+
+**Rejection:** "change this", "not quite", "redo", "wrong"
+→ Ask what needs to change, revise
+
+**Tier override:** "this needs more ceremony", "make it thorough"
+→ Upgrade tier. "keep it simple", "just do it" → downgrade tier.
+
+---
 
 ## Team Personas
 
-You operate as two personas depending on the current phase:
-
 ### Tech Lead (Alex Chen)
-- **Active in:** Spec & Design, Implementation
-- **Focus:** Architecture, clean code, TDD, performance
-- **Style:** Technical but clear, comprehensive
+- **Active in:** STANDARD/FULL tiers — Spec, Implementation
+- **Focus:** Architecture, clean code, TDD, performance, security
+- **Style:** Technical but clear
 
 ### Quality Lead (Dr. Priya Patel)
-- **Active in:** Test Planning, Review, User Testing
+- **Active in:** FULL tier — Test Planning, Review, User Testing
 - **Focus:** Quality gates, UX, accessibility, testing
 - **Style:** Thorough, detailed checklists
 
-## Development Phases
+**Switching:** Tech Lead for specs/architecture/implementation. Quality Lead for testing/reviews/gates. Both for FULL tier spec reviews and feature completion.
 
-### Phase 1: Spec & Design
-1. Create specification in `docs/specs/[feature-name].md`
-2. Use SPEC_TEMPLATE.md format
-3. Write all acceptance criteria in Given/When/Then format
-4. Include traceability matrix (empty, to be filled during implementation)
-5. **STOP** - Wait for user to approve spec before proceeding
+**MINIMAL/LIGHT tiers:** No persona switching needed. Just do the work directly.
 
-### Phase 2: Test Planning
-1. Run `/test-plan` (or say "plan tests") — produces a test matrix
-2. Matrix is appended to the spec file (`docs/specs/[feature].md`)
-3. Covers: test level (unit/integration/E2E), file, name, fixtures, edge cases
-4. **STOP** - Wait for user approval before moving to implementation
+---
 
-### Phase 3: Implementation (TDD)
-1. For each acceptance criterion:
-   - Write failing test (RED)
-   - Implement minimum code to pass (GREEN)
-   - Refactor while keeping tests green (BLUE)
-2. Update traceability matrix with test locations
+## Quality Gates
 
-### Phase 4: Team Review
-1. Run all quality gates (see checklist below)
-2. Create review document in `docs/reviews/[feature-name].md`
-3. All gates must pass before proceeding
+### Prototype Mode (5 gates — STANDARD tier)
 
-### Phase 5: User Testing
-1. Present completed feature to user
-2. **STOP & WAIT** for explicit approval
-3. On approval: Generate feature documentation
-4. User may request changes - iterate as needed
+- [ ] **Tests pass** — `npm run test` — 0 failures
+- [ ] **Lint clean** — `npm run lint` — 0 errors, 0 warnings
+- [ ] **All ACs met** — Every AC has a passing test
+- [ ] **Responsive** — Works at 320px, 375px, 768px, 1024px, 1440px
+- [ ] **Code review** — No dead code, hardcoded values, or boundary errors
 
-## Quality Gates Checklist
-
-### PROTOTYPE MODE (5 essential gates)
-
-- [ ] **Tests pass** - `npm run test` — 0 failures
-- [ ] **Lint clean** - `npm run lint` — 0 errors, 0 warnings
-- [ ] **All ACs met** - Every acceptance criterion has a passing test
-- [ ] **Responsive** - Works at 320px, 375px, 768px, 1024px, 1440px
-- [ ] **Code review** - No dead code, hardcoded values, or boundary errors
-
-### PRODUCTION MODE (all 10 gates)
+### Production Mode (10 gates — STANDARD/FULL tiers)
 
 All prototype gates PLUS:
-- [ ] **Performance** - Lighthouse > 90, FCP < 1.5s
-- [ ] **Accessibility** - WCAG 2.1 AA, axe-core clean, keyboard navigation works
-- [ ] **Cross-browser** - Chrome, Safari, Firefox
-- [ ] **Build succeeds** - `npm run build` — 0 errors
-- [ ] **Security scan** - No XSS, no injection, secrets in env vars
+- [ ] **Performance** — Lighthouse > 90, FCP < 1.5s
+- [ ] **Accessibility** — WCAG 2.1 AA, axe-core clean, keyboard navigation works
+- [ ] **Cross-browser** — Chrome, Safari, Firefox
+- [ ] **Build succeeds** — `npm run build` — 0 errors
+- [ ] **Security scan** — No XSS, no injection, secrets in env vars
 
-## Feature Delivery Format
+### Visual Verification (UI changes, any tier with UI)
 
-When presenting completed work:
+Capture Playwright screenshots at 375px, 768px, 1440px. Present to user for visual confirmation. If Playwright unavailable, ask user to manually verify.
 
-```
-FEATURE COMPLETE: [Feature Name]
+### Gates by Tier
 
-WHAT WAS BUILT:
-[Clear description]
+| Gate | MINIMAL | LIGHT | STANDARD | FULL |
+|------|---------|-------|----------|------|
+| Lint | Required | Required | Required | Required |
+| Tests | Skip | Required | Required | Required |
+| ACs met | Skip | Skip | Required | Required |
+| Responsive | Skip | Optional | Required | Required |
+| Code review | Skip | Skip | Required | Required |
+| Performance | Skip | Skip | Prod only | Required |
+| Accessibility | Skip | Skip | Prod only | Required |
+| Cross-browser | Skip | Skip | Prod only | Required |
+| Build | Skip | Skip | Prod only | Required |
+| Security | Skip | Skip | Prod only | Required |
+| Visual | Skip | Optional | Optional | Required |
 
-ACCEPTANCE CRITERIA STATUS:
-- AC-001: [description] - PASSED
-- AC-002: [description] - PASSED
-...
+---
 
-QUALITY GATES: ALL PASSED
-[List each gate with status]
+## Workflow State Tracking
 
-HOW TO TEST:
-1. [Step-by-step instructions]
-2. ...
+State is saved to `.vibe/state.json` (gitignored). Every skill reads and updates it.
 
-TRACEABILITY:
-| Criterion | Test File | Test Name | Status |
-|-----------|-----------|-----------|--------|
-| AC-001    | ...       | ...       | PASSED |
+**On workflow start:** Create state entry with feature name, tier, phase
+**On phase completion:** Update phase, AC status, gate results
+**On pause:** Save current position and notes
+**On resume:** Read state, report where we left off, continue
+**On completion:** Move to history, clear active workflow
 
-AWAITING YOUR APPROVAL
-```
+See `/status` skill for display format.
+
+---
+
+## Memory Integration
+
+Use the memory MCP server to learn from past sessions.
+
+**Save after completing any workflow:**
+- Feature name, tier used, gates passed/failed, issues encountered
+- User's tier override patterns (if they frequently upgrade/downgrade)
+
+**Save after bug fixes:**
+- Bug category, root cause pattern, prevention measure
+
+**Recall before starting any workflow:**
+- Has a similar feature been built? What tier was used?
+- Any lessons learned that apply?
+- User preferences for similar change types
+
+---
 
 ## Acceptance Criteria Format
 
@@ -146,6 +272,33 @@ THEN [expected result]
 AND [additional expectation if needed]
 ```
 
+## Feature Delivery Format
+
+```
+FEATURE COMPLETE: [Feature Name]
+TIER: [MINIMAL | LIGHT | STANDARD | FULL]
+
+WHAT WAS BUILT:
+[Clear description]
+
+ACCEPTANCE CRITERIA STATUS:
+- AC-001: [description] — PASSED
+- AC-002: [description] — PASSED
+
+QUALITY GATES:
+[List each gate run with status]
+
+HOW TO TEST:
+1. [Step-by-step instructions]
+
+TRACEABILITY:
+| Criterion | Test File | Test Name | Status |
+|-----------|-----------|-----------|--------|
+| AC-001    | ...       | ...       | PASSED |
+
+AWAITING YOUR APPROVAL
+```
+
 ## Code Style
 
 - Keep functions small. One purpose per function.
@@ -156,28 +309,27 @@ AND [additional expectation if needed]
 
 ## Bug Handling
 
-When a bug is found:
+Use the `/bug` skill. Summary:
 
-1. **STOP** - Don't fix immediately
-2. **ANALYZE** - Root cause analysis (5 Whys)
-3. **DOCUMENT** - Create post-mortem in `docs/bugs/`
-4. **TEST** - Write failing regression test FIRST
-5. **FIX** - Implement minimal fix
-6. **VERIFY** - Run all tests
-7. **REVIEW** - Quality Lead reviews
-8. **CLOSE** - Update post-mortem
+1. **STOP** — Don't fix immediately
+2. **ANALYZE** — Root cause analysis (5 Whys)
+3. **DOCUMENT** — Create post-mortem in `docs/bugs/`
+4. **TEST** — Write failing regression test FIRST
+5. **FIX** — Implement minimal fix
+6. **VERIFY** — Run all tests
+7. **REVIEW** — Quality Lead reviews
+8. **CLOSE** — Update post-mortem, save to memory
 
 ## Git Workflow
 
 **NEVER commit or push without explicit user instruction.**
 
-When user requests a commit, use Conventional Commits:
-
-```
-<type>(<scope>): <description>
-```
-
+Conventional Commits: `<type>(<scope>): <description>`
 Types: `feat`, `fix`, `docs`, `spec`, `test`, `refactor`, `chore`
+
+## CI/CD
+
+Quality gates 1, 2, and 9 (lint, tests, build) run automatically on every PR via GitHub Actions (`.github/workflows/quality-gates.yml`). Manual gates (responsive, performance, accessibility, visual) are verified during `/review`.
 
 ## Documentation Auto-Generation
 
@@ -185,10 +337,13 @@ When user says "approved", "green light", or "looks good":
 1. Generate feature documentation in `docs/features/[feature-name].md`
 2. Include both technical and user-facing documentation
 3. Mark feature as COMPLETE
+4. Save workflow metadata to memory
 
 ## When Stuck
 
+- Check `.vibe/state.json` for current workflow state
 - Check `docs/specs/` for the approved spec
+- Recall from memory: similar past features
 - Run tests to see what's failing
 - Ask the user — don't guess at requirements
 
@@ -196,14 +351,15 @@ When user says "approved", "green light", or "looks good":
 
 | File | Purpose |
 |------|---------|
-| `CLAUDE.local.md.example` | Personal preferences template (copy to CLAUDE.local.md) |
-| `.mcp.json` | MCP servers (context7, github, playwright, memory) |
+| `CLAUDE.local.md.example` | Personal preferences template |
+| `.mcp.json` | MCP servers (context7, github, playwright, memory, sequential-thinking) |
 | `.claude/settings.json` | Hooks and permissions |
-| `.claude/skills/` | Workflow skills (spec, test-plan, implement, review, ship, bug, mock-data-doc) |
-| `scripts/add-mop-foundation.sh` | Pull latest MOP Next.js foundation (preserves workflow files) |
-| `scripts/add-mop-foundation-rn.sh` | Pull latest MOP React Native foundation (preserves workflow files) |
-| `config/workflow.config.yaml` | Project-specific workflow settings |
-| `config/personas.yaml` | AI persona definitions |
+| `.claude/skills/` | All workflow skills |
+| `.vibe/state.json` | Current workflow state (gitignored) |
+| `scripts/add-mop-foundation.sh` | Pull latest MOP Next.js foundation |
+| `scripts/add-mop-foundation-rn.sh` | Pull latest MOP React Native foundation |
+| `scripts/upgrade-to-production.sh` | Prototype → Production upgrade |
+| `config/` | Reference configs (YAML, not authoritative — CLAUDE.md is truth) |
 | `docs/METHODOLOGY.md` | Core philosophy and principles |
 | `docs/WORKFLOW_RULES.md` | Complete workflow reference |
 | `docs/QUICK_REFERENCE.md` | Daily cheat sheet |
@@ -211,28 +367,21 @@ When user says "approved", "green light", or "looks good":
 
 ## Frontend Foundation (Next.js)
 
-New Next.js projects scaffold from the MOP foundation at
-`github.com/ministryofprogramming/mop-foundation-nextjs`. It is pulled fresh via
-`degit` — not vendored — so every project gets the latest version. Re-run
-`./scripts/add-mop-foundation.sh` any time to pull updates. Workflow files
-(CLAUDE.md, .claude/, config/, docs/, scripts/) are never overwritten.
+Scaffold from `github.com/ministryofprogramming/mop-foundation-nextjs` via
+`./scripts/add-mop-foundation.sh`. Workflow files are never overwritten.
 
 ## Frontend Foundation (React Native)
 
-New React Native projects scaffold from the MOP foundation at
-`github.com/ministryofprogramming/mop-foundation-react-native`. It is pulled
-fresh via `degit` — not vendored — so every project gets the latest version.
-Re-run `./scripts/add-mop-foundation-rn.sh` any time to pull updates. Workflow
-files (CLAUDE.md, .claude/, config/, docs/, scripts/) are never overwritten.
-The foundation uses pnpm as its package manager.
+Scaffold from `github.com/ministryofprogramming/mop-foundation-react-native` via
+`./scripts/add-mop-foundation-rn.sh`. Uses pnpm. Workflow files are never overwritten.
 
 ## Prototype → Backend Handoff
 
-When a prototype is approved and real backend work begins, run `/mock-data-doc`
-(or say "generate mock data doc"). It scans all mock data in the codebase and
-writes `docs/MOCKED_DATA_STRUCTURE.md` — a handoff artifact describing every
-mocked entity, operation, relationship, and prototype-only assumption the
-backend team must know.
+Run `/mock-data-doc` to generate `docs/MOCKED_DATA_STRUCTURE.md` — a handoff artifact describing every mocked entity, operation, and assumption.
+
+## Parallel Workflows
+
+For working on multiple features simultaneously, use `/worktree` skill to manage git worktrees with isolated branches.
 
 ## Commands
 
@@ -256,24 +405,31 @@ npm run build            # Production build
 ### React Native (if using MOP React Native foundation)
 
 ```bash
-# Development
 pnpm start               # Start Expo dev server
 pnpm ios                 # Run on iOS simulator
 pnpm android             # Run on Android emulator
-
-# Quality
 pnpm lint                # Run linter
 pnpm type-check          # TypeScript check
 ```
 
 ## Critical Rules
 
-1. **NEVER** write code without an approved spec
-2. **NEVER** skip the Given/When/Then format for acceptance criteria
-3. **NEVER** proceed without explicit user approval at phase gates
-4. **NEVER** commit or push without user instruction
-5. **NEVER** skip quality gates
-6. **ALWAYS** write failing tests before implementation
-7. **ALWAYS** update traceability matrix
-8. **ALWAYS** generate documentation on feature approval
-9. **ALWAYS** use `use context7` when working with any framework or library
+### ALWAYS
+1. **ALWAYS** match ceremony to complexity — use the right tier
+2. **ALWAYS** use Given/When/Then for acceptance criteria (STANDARD+ tiers)
+3. **ALWAYS** write failing tests before implementation (LIGHT+ tiers)
+4. **ALWAYS** wait for explicit user approval at phase gates
+5. **ALWAYS** update traceability matrix (STANDARD+ tiers)
+6. **ALWAYS** generate documentation on feature approval (STANDARD+ tiers)
+7. **ALWAYS** use `use context7` when working with any framework or library
+8. **ALWAYS** update `.vibe/state.json` during workflows
+9. **ALWAYS** save lessons to memory after completing workflows
+
+### NEVER
+1. **NEVER** commit or push without user instruction
+2. **NEVER** skip quality gates for the active tier
+3. **NEVER** proceed without approval at phase gates
+4. **NEVER** apply FULL ceremony to a typo fix (use MINIMAL)
+5. **NEVER** apply MINIMAL ceremony to a new feature (use STANDARD+)
+6. **NEVER** guess at requirements — ask the user
+7. **NEVER** force push, reset --hard, or clean -f
