@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibecoding Workflow v2.0 — Onboarding</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #09090b;
+    --bg2: #0f0f13;
+    --bg-card: #131318;
+    --bg-card-hover: #1a1a24;
+    --bg-surface: #18181f;
+    --text: #d4d4d8;
+    --text-dim: #62626b;
+    --text-muted: #52525b;
+    --text-bright: #fafafa;
+    --accent: #8b5cf6;
+    --accent2: #a78bfa;
+    --accent-glow: rgba(139,92,246,0.12);
+    --accent-border: rgba(139,92,246,0.25);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --green-border: rgba(34,197,94,0.25);
+    --yellow: #eab308;
+    --yellow-dim: rgba(234,179,8,0.12);
+    --yellow-border: rgba(234,179,8,0.25);
+    --red: #ef4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --red-border: rgba(239,68,68,0.25);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.12);
+    --blue-border: rgba(59,130,246,0.25);
+    --orange: #f97316;
+    --orange-dim: rgba(249,115,22,0.12);
+    --orange-border: rgba(249,115,22,0.25);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6,182,212,0.12);
+    --cyan-border: rgba(6,182,212,0.25);
+    --pink: #ec4899;
+    --pink-dim: rgba(236,72,153,0.12);
+    --border: #1e1e26;
+    --border2: #27272f;
+    --r: 12px;
+    --r-sm: 8px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw;}
+
+  /* ── DECK ── */
+  .deck{position:relative;width:100%;height:100%;}
+  .slide{
+    position:absolute;inset:0;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
+    padding:48px 64px 72px;
+    opacity:0;pointer-events:none;
+    transition:opacity .45s ease,transform .45s ease;
+    overflow-y:auto;overflow-x:hidden;
+  }
+  .slide.active{opacity:1;pointer-events:all;transform:none!important;}
+  .slide>*{position:relative;z-index:1;}
+
+  /* ── ANIM ── */
+  .slide .anim{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease;}
+  .slide.active .anim{opacity:1;transform:none;}
+  .slide.active .anim.d1{transition-delay:.1s}
+  .slide.active .anim.d2{transition-delay:.2s}
+  .slide.active .anim.d3{transition-delay:.3s}
+  .slide.active .anim.d4{transition-delay:.4s}
+  .slide.active .anim.d5{transition-delay:.5s}
+  .slide.active .anim.d6{transition-delay:.6s}
+  .slide.active .anim.d7{transition-delay:.7s}
+  .slide.active .anim.d8{transition-delay:.8s}
+
+  /* ── TYPE ── */
+  h1{font-size:3.2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;color:var(--text-bright);}
+  h2{font-size:2.2rem;font-weight:700;letter-spacing:-.025em;color:var(--text-bright);margin-bottom:8px;}
+  h3{font-size:1.15rem;font-weight:600;color:var(--text-bright);margin-bottom:6px;}
+  h4{font-size:.95rem;font-weight:600;color:var(--text-bright);margin-bottom:4px;}
+  .accent{color:var(--accent2);}
+  .green{color:var(--green);}
+  .red{color:var(--red);}
+  .blue{color:var(--blue);}
+  .yellow{color:var(--yellow);}
+  .orange{color:var(--orange);}
+  .dim{color:var(--text-dim);}
+  .bright{color:var(--text-bright);}
+  p{line-height:1.7;max-width:800px;}
+  .subtitle{font-size:1.2rem;color:var(--text-dim);font-weight:400;max-width:680px;text-align:center;line-height:1.65;}
+  .sm{font-size:.9rem;}
+  .xs{font-size:.8rem;}
+
+  code,.mono{font-family:'JetBrains Mono',monospace;font-size:.88em;background:var(--accent-glow);border:1px solid var(--accent-border);padding:1px 7px;border-radius:5px;color:var(--accent2);}
+
+  .label{
+    display:inline-block;font-size:.7rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent2);background:var(--accent-glow);border:1px solid var(--accent-border);
+    padding:3px 12px;border-radius:20px;margin-bottom:14px;
+  }
+  .section-label{
+    display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    padding:3px 10px;border-radius:4px;margin-bottom:10px;
+  }
+  .section-label.green-l{color:var(--green);background:var(--green-dim);}
+  .section-label.blue-l{color:var(--blue);background:var(--blue-dim);}
+  .section-label.yellow-l{color:var(--yellow);background:var(--yellow-dim);}
+  .section-label.orange-l{color:var(--orange);background:var(--orange-dim);}
+  .section-label.red-l{color:var(--red);background:var(--red-dim);}
+  .section-label.accent-l{color:var(--accent2);background:var(--accent-glow);}
+  .section-label.cyan-l{color:var(--cyan);background:var(--cyan-dim);}
+
+  /* ── LAYOUT ── */
+  .content{max-width:1080px;width:100%;}
+  .center{text-align:center;display:flex;flex-direction:column;align-items:center;}
+  .left-align{text-align:left;align-items:flex-start;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:1080px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;width:100%;max-width:1080px;}
+  .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;width:100%;max-width:1080px;}
+  .grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;width:100%;max-width:1080px;}
+  .flex{display:flex;gap:16px;align-items:stretch;width:100%;max-width:1080px;}
+  .flex>*{flex:1;}
+  .mt{margin-top:28px;}.mt-sm{margin-top:14px;}.mt-lg{margin-top:44px;}.mb{margin-bottom:20px;}.mb-sm{margin-bottom:10px;}
+
+  /* ── CARD ── */
+  .card{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+    padding:22px;transition:border-color .3s,background .3s;
+  }
+  .card:hover{border-color:var(--border2);background:var(--bg-card-hover);}
+  .card .icon{font-size:1.6rem;margin-bottom:10px;display:block;}
+  .card p,.card .desc{font-size:.88rem;color:var(--text-dim);line-height:1.6;}
+  .card-sm{padding:16px;}
+  .card-accent{border-color:var(--accent-border);}
+  .card-green{border-color:var(--green-border);background:var(--green-dim);}
+  .card-red{border-color:var(--red-border);background:var(--red-dim);}
+  .card-blue{border-color:var(--blue-border);background:var(--blue-dim);}
+  .card-yellow{border-color:var(--yellow-border);background:var(--yellow-dim);}
+  .card-orange{border-color:var(--orange-border);background:var(--orange-dim);}
+  .card-cyan{border-color:var(--cyan-border);background:var(--cyan-dim);}
+
+  /* ── CODE BLOCK ── */
+  .codeblock{
+    background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+    padding:20px 24px;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.9;
+    width:100%;color:var(--text);overflow-x:auto;white-space:pre;
+  }
+  .codeblock .kw{color:var(--accent2);}
+  .codeblock .cm{color:var(--text-muted);}
+  .codeblock .str{color:var(--green);}
+  .codeblock .fn{color:var(--blue);}
+  .codeblock .num{color:var(--orange);}
+  .codeblock .err{color:var(--red);}
+
+  /* ── TIER BADGE ── */
+  .tier-badge{
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;letter-spacing:.08em;
+    padding:3px 10px;border-radius:5px;display:inline-block;
+  }
+  .tier-minimal .tier-badge,.tb-minimal{color:var(--green);background:var(--green-dim);border:1px solid var(--green-border);}
+  .tier-light .tier-badge,.tb-light{color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-border);}
+  .tier-standard .tier-badge,.tb-standard{color:var(--yellow);background:var(--yellow-dim);border:1px solid var(--yellow-border);}
+  .tier-full .tier-badge,.tb-full{color:var(--orange);background:var(--orange-dim);border:1px solid var(--orange-border);}
+  .tier-emergency .tier-badge,.tb-emergency{color:var(--red);background:var(--red-dim);border:1px solid var(--red-border);}
+
+  /* ── TIER CARD ── */
+  .tier-card{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+    padding:18px;text-align:center;transition:all .3s;
+  }
+  .tier-card:hover{transform:translateY(-3px);border-color:var(--border2);}
+  .tier-card .when{font-size:.8rem;color:var(--text-dim);margin:8px 0 10px;line-height:1.5;}
+  .tier-card .phases{font-size:.75rem;font-family:'JetBrains Mono',monospace;color:var(--text);line-height:1.9;}
+
+  /* ── FLOW ── */
+  .flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin:16px 0;}
+  .flow-box{
+    background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);
+    padding:10px 18px;font-size:.85rem;font-weight:500;color:var(--text);transition:all .3s;
+  }
+  .flow-box:hover{border-color:var(--accent);background:var(--accent-glow);}
+  .flow-arr{color:var(--text-muted);font-size:1rem;}
+  .flow-stop{
+    background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);
+    font-size:.65rem;font-weight:700;letter-spacing:.06em;padding:5px 9px;border-radius:5px;
+  }
+
+  /* ── TABLE ── */
+  .tbl{width:100%;max-width:1080px;border-collapse:separate;border-spacing:0;font-size:.82rem;margin-top:16px;}
+  .tbl th{text-align:left;padding:9px 14px;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--text-dim);border-bottom:1px solid var(--border);}
+  .tbl td{padding:9px 14px;border-bottom:1px solid rgba(30,30,38,.6);color:var(--text);}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl .chk{color:var(--green);font-weight:600;}
+  .tbl .skp{color:var(--text-muted);}
+  .tbl .opt{color:var(--yellow);}
+
+  /* ── LIST ── */
+  .step-list{list-style:none;max-width:900px;width:100%;}
+  .step-list li{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid rgba(30,30,38,.5);align-items:flex-start;}
+  .step-list li:last-child{border-bottom:none;}
+  .step-num{
+    font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;
+    color:var(--accent2);background:var(--accent-glow);border-radius:var(--r-sm);
+    min-width:30px;height:30px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+  }
+  .step-text{font-size:.9rem;line-height:1.6;}
+  .step-text strong{color:var(--text-bright);}
+
+  .check-list{list-style:none;text-align:left;}
+  .check-list li{padding:5px 0;font-size:.88rem;display:flex;align-items:center;gap:8px;}
+  .check-list .ic{font-size:.85rem;width:20px;text-align:center;flex-shrink:0;}
+
+  /* ── VS ── */
+  .vs{display:grid;grid-template-columns:1fr 1px 1fr;gap:28px;align-items:start;max-width:1000px;width:100%;}
+  .vs-line{background:linear-gradient(to bottom,transparent,var(--border2),transparent);min-height:200px;position:relative;}
+  .vs-line::after{content:'VS';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg);padding:6px 3px;font-size:.65rem;font-weight:700;letter-spacing:.1em;color:var(--text-muted);}
+  .vs-item{display:flex;gap:10px;margin:10px 0;font-size:.88rem;line-height:1.5;}
+
+  /* ── QUOTE ── */
+  .quote{font-size:1.35rem;font-weight:300;font-style:italic;color:var(--text-dim);text-align:center;max-width:660px;line-height:1.6;border-left:3px solid var(--accent);padding-left:22px;margin:18px 0;}
+
+  /* ── PCT ── */
+  .pct-row{display:flex;align-items:center;gap:14px;margin:7px 0;max-width:680px;width:100%;}
+  .pct-label{font-weight:600;font-size:.88rem;min-width:110px;color:var(--text-bright);}
+  .pct-bg{flex:1;height:26px;background:rgba(30,30,38,.5);border-radius:5px;overflow:hidden;}
+  .pct-bar{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding-right:9px;font-size:.72rem;font-weight:600;color:var(--bg);}
+  .pct-desc{font-size:.78rem;color:var(--text-dim);min-width:180px;}
+
+  /* ── EXAMPLE TERMINAL ── */
+  .terminal{
+    background:#0c0c10;border:1px solid var(--border);border-radius:var(--r);
+    width:100%;max-width:700px;overflow:hidden;
+  }
+  .terminal-bar{
+    background:#151519;padding:8px 14px;display:flex;align-items:center;gap:7px;
+    border-bottom:1px solid var(--border);
+  }
+  .terminal-dot{width:10px;height:10px;border-radius:50%;}
+  .terminal-dot.r{background:#ff5f56;}.terminal-dot.y{background:#ffbd2e;}.terminal-dot.g{background:#27c93f;}
+  .terminal-title{font-size:.7rem;color:var(--text-muted);margin-left:8px;font-family:'JetBrains Mono',monospace;}
+  .terminal-body{padding:18px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:2;color:var(--text);}
+  .terminal-body .prompt{color:var(--green);}
+  .terminal-body .cmd{color:var(--text-bright);}
+  .terminal-body .out{color:var(--text-dim);}
+  .terminal-body .highlight{color:var(--accent2);}
+  .terminal-body .warn{color:var(--yellow);}
+  .terminal-body .ok{color:var(--green);}
+  .terminal-body .err{color:var(--red);}
+
+  /* ── FILE TREE ── */
+  .file-tree{
+    font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.9;
+    background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+    padding:18px 22px;color:var(--text-dim);
+  }
+  .file-tree .dir{color:var(--blue);}
+  .file-tree .file{color:var(--text);}
+  .file-tree .important{color:var(--accent2);font-weight:500;}
+  .file-tree .note{color:var(--text-muted);font-style:italic;}
+
+  /* ── BIG NUMBER ── */
+  .big-num{font-size:3.5rem;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.03em;}
+
+  /* ── SECTION DIVIDER ── */
+  .slide.divider{background:linear-gradient(135deg,rgba(139,92,246,.06) 0%,transparent 50%);}
+  .divider-num{font-size:5rem;font-weight:900;color:rgba(139,92,246,.15);font-family:'JetBrains Mono',monospace;line-height:1;}
+
+  /* ── GLOW ── */
+  .glow{position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+  /* ── NAV ── */
+  .nav{
+    position:fixed;bottom:0;left:0;right:0;height:52px;
+    background:rgba(9,9,11,.92);backdrop-filter:blur(14px);border-top:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 28px;z-index:100;
+  }
+  .nav-left{display:flex;align-items:center;gap:12px;}
+  .nav-section{font-size:.7rem;font-weight:600;color:var(--text-muted);letter-spacing:.04em;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nav-progress{display:flex;gap:3px;align-items:center;}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:all .3s;cursor:pointer;}
+  .nav-dot.active{background:var(--accent);box-shadow:0 0 6px var(--accent);width:18px;border-radius:3px;}
+  .nav-dot.visited{background:rgba(139,92,246,.35);}
+  .nav-dot.section-start{margin-left:4px;}
+  .nav-right{display:flex;gap:7px;align-items:center;}
+  .nav-btn{
+    background:var(--bg-card);border:1px solid var(--border);color:var(--text);
+    padding:7px 14px;border-radius:var(--r-sm);cursor:pointer;
+    font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;transition:all .2s;
+  }
+  .nav-btn:hover{border-color:var(--accent);background:var(--accent-glow);}
+  .nav-counter{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-dim);min-width:48px;text-align:center;}
+  .nav-keys{font-size:.7rem;color:var(--text-muted);}
+
+  kbd{background:var(--bg-card);border:1px solid var(--border);padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:.75rem;}
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:1000px){
+    .slide{padding:36px 28px 64px;}
+    h1{font-size:2.2rem;}h2{font-size:1.7rem;}
+    .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr 1fr;}
+    .grid-5{grid-template-columns:1fr 1fr;}
+    .vs{grid-template-columns:1fr;}.vs-line{display:none;}
+    .flex{flex-direction:column;}
+  }
+  @media(max-width:600px){
+    .grid-2,.grid-3,.grid-4,.grid-5{grid-template-columns:1fr;}
+    h1{font-size:1.8rem;}
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 0: TITLE
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide active center" data-slide="0" data-section="Introduction">
+  <div class="glow" style="top:-150px;right:-100px;"></div>
+  <div class="glow" style="bottom:-200px;left:-100px;"></div>
+  <div class="label anim d1">Adaptive Spec-Driven Development</div>
+  <h1 class="anim d2">Vibecoding<br>Workflow <span class="accent">v2.0</span></h1>
+  <p class="subtitle mt-sm anim d3">A structured, AI-assisted development methodology<br>that adapts ceremony to complexity.</p>
+  <p class="subtitle mt anim d4" style="font-size:.88rem;">
+    Navigate: <kbd>&larr;</kbd> <kbd>&rarr;</kbd> arrow keys &nbsp;&bull;&nbsp; Click progress dots &nbsp;&bull;&nbsp; Swipe on mobile
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 1: THE PROBLEM
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="1" data-section="The Problem">
+  <div class="divider-num anim">01</div>
+  <div class="label anim d1">Section One</div>
+  <h1 class="anim d2">The Problem</h1>
+  <p class="subtitle anim d3">Why AI-assisted development needs a methodology</p>
+</div>
+
+<div class="slide center" data-slide="2" data-section="The Problem">
+  <div class="label anim">The Reality</div>
+  <h2 class="anim d1">AI Can Code Fast.<br>But Fast &ne; Right.</h2>
+  <div class="vs mt anim d2">
+    <div>
+      <h3 class="red mb-sm">What Goes Wrong</h3>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>AI writes the wrong thing because requirements are vague</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>"Make login secure" means different things to everyone</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>No tests &mdash; bugs hide until production</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>AI runs ahead, makes changes you didn't approve</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>A typo fix gets the same ceremony as a feature</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>Same bugs keep coming back &mdash; no root cause analysis</span></div>
+      <div class="vs-item"><span class="red">&#10007;</span> <span>No documentation, no traceability, no audit trail</span></div>
+    </div>
+    <div class="vs-line"></div>
+    <div>
+      <h3 class="green mb-sm">How Vibecoding Fixes It</h3>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>Detailed specs with testable criteria eliminate ambiguity</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>Given/When/Then format &mdash; zero room for interpretation</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>TDD + quality gates catch issues before users do</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>Stop &amp; Wait protocol &mdash; you approve every phase</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>5 adaptive tiers match process to change size</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>5 Whys post-mortems prevent repeat bugs</span></div>
+      <div class="vs-item"><span class="green">&#10003;</span> <span>Auto-generated docs, traceability matrix, memory</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 2: CORE PHILOSOPHY
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="3" data-section="Core Philosophy">
+  <div class="divider-num anim">02</div>
+  <div class="label anim d1">Section Two</div>
+  <h1 class="anim d2">Core Philosophy</h1>
+  <p class="subtitle anim d3">Precision through specification. Quality through discipline. Control through process.</p>
+</div>
+
+<div class="slide center" data-slide="4" data-section="Core Philosophy">
+  <div class="label anim">8 Guiding Principles</div>
+  <h2 class="anim d1 mb">The Foundation</h2>
+  <div class="grid-4 anim d2">
+    <div class="card card-sm">
+      <span class="icon">&#128203;</span>
+      <h4>Spec Before Code</h4>
+      <p class="desc">Write detailed specs before a single line of code. The spec is the contract.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#127919;</span>
+      <h4>Precision Over Speed</h4>
+      <p class="desc">Building the right thing slowly beats building the wrong thing quickly.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#128737;</span>
+      <h4>Quality Is Non-Negotiable</h4>
+      <p class="desc">All gates must pass. No exceptions. No "we'll fix it later."</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#128721;</span>
+      <h4>Human Control</h4>
+      <p class="desc">AI proposes, human approves. No auto-commits. Clear approval points.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#128196;</span>
+      <h4>Docs as Deliverable</h4>
+      <p class="desc">Documentation is part of the feature, not an afterthought. Auto-generated on approval.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#129504;</span>
+      <h4>Learn From Every Bug</h4>
+      <p class="desc">5 Whys root cause analysis. Post-mortem. Regression test. Prevention measures.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#9878;</span>
+      <h4>Graceful Recovery</h4>
+      <p class="desc">Every skill has defined error handling. After any fix, re-run ALL checks.</p>
+    </div>
+    <div class="card card-sm">
+      <span class="icon">&#128065;</span>
+      <h4>Visual Truth</h4>
+      <p class="desc">Playwright screenshots at key breakpoints. Code review catches logic; visual catches layout.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 3: FIRST DECISION
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="5" data-section="Prototype vs Production">
+  <div class="divider-num anim">03</div>
+  <div class="label anim d1">Section Three</div>
+  <h1 class="anim d2">First Decision</h1>
+  <p class="subtitle anim d3">Prototype or Production? This determines everything.</p>
+</div>
+
+<div class="slide center" data-slide="6" data-section="Prototype vs Production">
+  <div class="label anim">Choose Your Mode</div>
+  <h2 class="anim d1 mb">Two Modes, One Workflow</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div class="card" style="border-color:var(--blue-border);">
+      <div class="section-label blue-l">Prototype Mode</div>
+      <h3>Validate Fast</h3>
+      <p class="desc mb-sm">Frontend-only. Mock data. 5 quality gates. Ship and get feedback before writing a backend.</p>
+      <ul class="check-list" style="margin-top:12px;">
+        <li><span class="ic green">&#10003;</span> Tests pass</li>
+        <li><span class="ic green">&#10003;</span> Lint clean</li>
+        <li><span class="ic green">&#10003;</span> All ACs met</li>
+        <li><span class="ic green">&#10003;</span> Responsive</li>
+        <li><span class="ic green">&#10003;</span> Code review</li>
+        <li><span class="ic dim">&mdash;</span> <span class="dim">Performance (skipped)</span></li>
+        <li><span class="ic dim">&mdash;</span> <span class="dim">Accessibility (skipped)</span></li>
+        <li><span class="ic dim">&mdash;</span> <span class="dim">Cross-browser (skipped)</span></li>
+        <li><span class="ic dim">&mdash;</span> <span class="dim">Build (skipped)</span></li>
+        <li><span class="ic dim">&mdash;</span> <span class="dim">Security (skipped)</span></li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--orange-border);">
+      <div class="section-label orange-l">Production Mode</div>
+      <h3>Ship Reliably</h3>
+      <p class="desc mb-sm">Full-stack. Real database, APIs, auth. All 10 quality gates. Professional-grade output.</p>
+      <ul class="check-list" style="margin-top:12px;">
+        <li><span class="ic green">&#10003;</span> Tests pass</li>
+        <li><span class="ic green">&#10003;</span> Lint clean</li>
+        <li><span class="ic green">&#10003;</span> All ACs met</li>
+        <li><span class="ic green">&#10003;</span> Responsive</li>
+        <li><span class="ic green">&#10003;</span> Code review</li>
+        <li><span class="ic green">&#10003;</span> Performance &mdash; Lighthouse &gt; 90</li>
+        <li><span class="ic green">&#10003;</span> Accessibility &mdash; WCAG 2.1 AA</li>
+        <li><span class="ic green">&#10003;</span> Cross-browser &mdash; Chrome, Safari, FF</li>
+        <li><span class="ic green">&#10003;</span> Build &mdash; <code>npm run build</code> passes</li>
+        <li><span class="ic green">&#10003;</span> Security &mdash; XSS, injection, secrets</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card mt anim d3" style="max-width:950px;border-color:var(--green-border);background:var(--green-dim);text-align:center;">
+    <p style="color:var(--text);font-size:.92rem;"><strong class="green">Always start as prototype.</strong> Validate with users. Then upgrade: <code>./scripts/upgrade-to-production.sh</code></p>
+  </div>
+</div>
+
+<div class="slide center" data-slide="6b" data-section="Prototype vs Production">
+  <div class="label anim">Transition</div>
+  <h2 class="anim d1 mb">Upgrading to Production</h2>
+  <p class="subtitle anim d2 mb">When your prototype is validated, run one script and address 5 new gates.</p>
+  <div class="terminal anim d3" style="max-width:600px;">
+    <div class="terminal-bar">
+      <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+      <span class="terminal-title">Terminal</span>
+    </div>
+    <div class="terminal-body" style="font-size:.78rem;">
+<span class="prompt">$</span> <span class="cmd">./scripts/upgrade-to-production.sh</span>
+<span class="out">Switching from 5 to 10 quality gates...</span>
+<span class="out">Creating transition checklist...</span>
+<span class="ok">&#10003; Production mode enabled</span>
+    </div>
+  </div>
+  <div class="grid-5 mt anim d4" style="max-width:1000px;">
+    <div class="card card-sm" style="text-align:center;border-color:var(--orange-border);">
+      <div style="font-size:1.4rem;margin-bottom:6px;">&#9889;</div>
+      <h4 style="font-size:.82rem;">Performance</h4>
+      <p class="desc" style="font-size:.72rem;">Lighthouse &gt; 90<br>FCP &lt; 1.5s<br>TTI &lt; 3s</p>
+    </div>
+    <div class="card card-sm" style="text-align:center;border-color:var(--orange-border);">
+      <div style="font-size:1.4rem;margin-bottom:6px;">&#9855;</div>
+      <h4 style="font-size:.82rem;">Accessibility</h4>
+      <p class="desc" style="font-size:.72rem;">WCAG 2.1 AA<br>Keyboard nav<br>Screen reader</p>
+    </div>
+    <div class="card card-sm" style="text-align:center;border-color:var(--orange-border);">
+      <div style="font-size:1.4rem;margin-bottom:6px;">&#127760;</div>
+      <h4 style="font-size:.82rem;">Cross-Browser</h4>
+      <p class="desc" style="font-size:.72rem;">Chrome<br>Safari<br>Firefox</p>
+    </div>
+    <div class="card card-sm" style="text-align:center;border-color:var(--orange-border);">
+      <div style="font-size:1.4rem;margin-bottom:6px;">&#128230;</div>
+      <h4 style="font-size:.82rem;">Build</h4>
+      <p class="desc" style="font-size:.72rem;">npm run build<br>0 errors<br>Real API endpoints</p>
+    </div>
+    <div class="card card-sm" style="text-align:center;border-color:var(--orange-border);">
+      <div style="font-size:1.4rem;margin-bottom:6px;">&#128274;</div>
+      <h4 style="font-size:.82rem;">Security</h4>
+      <p class="desc" style="font-size:.72rem;">No XSS<br>No injection<br>Secrets in env</p>
+    </div>
+  </div>
+  <p class="dim xs mt anim d5">Option B: If prototype code is messy, rebuild from scratch using the prototype as a reference.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 4: TIER SYSTEM
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="7" data-section="The Tier System">
+  <div class="divider-num anim">04</div>
+  <div class="label anim d1">Section Four</div>
+  <h1 class="anim d2">The Adaptive<br>Tier System</h1>
+  <p class="subtitle anim d3">Not every change deserves a spec. But every feature does.</p>
+</div>
+
+<div class="slide center" data-slide="8" data-section="The Tier System">
+  <div class="label anim">5 Tiers</div>
+  <h2 class="anim d1 mb">Right-Sized Ceremony</h2>
+  <div class="grid-5 anim d2">
+    <div class="tier-card tier-minimal">
+      <div class="tier-badge">MINIMAL</div>
+      <div class="when">Typos, copy, styling, config</div>
+      <div class="phases">Change<br>&#8595;<br>Lint<br>&#8595;<br>Done</div>
+    </div>
+    <div class="tier-card tier-light">
+      <div class="tier-badge">LIGHT</div>
+      <div class="when">Bug fixes, small adds, refactoring</div>
+      <div class="phases">Understand<br>&#8595;<br>Test<br>&#8595;<br>Fix<br>&#8595;<br>Verify</div>
+    </div>
+    <div class="tier-card tier-standard">
+      <div class="tier-badge">STANDARD</div>
+      <div class="when">New features, significant changes</div>
+      <div class="phases">Spec<br>&#8595;<br>Test Plan<br>&#8595;<br>TDD<br>&#8595;<br>Review<br>&#8595;<br>Present</div>
+    </div>
+    <div class="tier-card tier-full">
+      <div class="tier-badge">FULL</div>
+      <div class="when">Epics, architecture, security</div>
+      <div class="phases">Spec<br>&#8595;<br>Test Plan<br>&#8595;<br>TDD<br>&#8595;<br>Review<br>&#8595;<br>Docs<br>&#8595;<br>Present</div>
+    </div>
+    <div class="tier-card tier-emergency">
+      <div class="tier-badge">EMERGENCY</div>
+      <div class="when">Production down, critical security</div>
+      <div class="phases">Reproduce<br>&#8595;<br>Fix<br>&#8595;<br>Test<br>&#8595;<br>Deploy<br>&#8595;<br>Postmortem</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="9" data-section="The Tier System">
+  <div class="label anim">Auto-Detection</div>
+  <h2 class="anim d1 mb">How Tiers Are Chosen</h2>
+  <p class="subtitle anim d2 mb">The workflow analyzes keywords, scope, and file count in your request.</p>
+  <div class="grid-2 anim d3" style="max-width:950px;">
+    <div class="card card-sm">
+      <div class="section-label green-l">MINIMAL Signals</div>
+      <p class="desc">typo, spelling, copy, wording, rename, color, padding, margin, config, env variable, "change X to Y"</p>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label blue-l">LIGHT Signals</div>
+      <p class="desc">fix, bug, broken, crash, error, wrong, add a button, small component, refactor, extract, move, 1-3 files</p>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label yellow-l">STANDARD Signals</div>
+      <p class="desc">feature, implement, build, create, add (new functionality), form, page, API endpoint, database, 3-10 files</p>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label orange-l">FULL Signals</div>
+      <p class="desc">epic, major, architecture, redesign, migration, security overhaul, system, platform, 10+ files</p>
+    </div>
+  </div>
+  <div class="card mt anim d4" style="max-width:950px;text-align:center;">
+    <p style="font-size:.9rem;color:var(--text);">
+      <strong class="bright">You always have control.</strong>
+      Override any time: <code>--minimal</code> <code>--light</code> <code>--standard</code> <code>--full</code>
+      <br><span class="dim">Or just say: "actually make this STANDARD"</span>
+    </p>
+  </div>
+</div>
+
+<div class="slide center" data-slide="10" data-section="The Tier System">
+  <div class="label anim">Daily Reality</div>
+  <h2 class="anim d1 mb">Where Your Time Goes</h2>
+  <div style="max-width:680px;width:100%;" class="anim d2">
+    <div class="pct-row">
+      <span class="pct-label">MINIMAL / LIGHT</span>
+      <div class="pct-bg"><div class="pct-bar" style="width:80%;background:var(--green);">80%</div></div>
+      <span class="pct-desc">Fixes, tweaks, refactors</span>
+    </div>
+    <div class="pct-row">
+      <span class="pct-label">STANDARD</span>
+      <div class="pct-bg"><div class="pct-bar" style="width:15%;background:var(--blue);">15%</div></div>
+      <span class="pct-desc">New features</span>
+    </div>
+    <div class="pct-row">
+      <span class="pct-label">FULL / EMERGENCY</span>
+      <div class="pct-bg"><div class="pct-bar" style="width:5%;background:var(--orange);">5%</div></div>
+      <span class="pct-desc">Epics, fires</span>
+    </div>
+  </div>
+  <div class="quote mt anim d3">"The tier system gives you exactly the amount of process needed &mdash; no more, no less."</div>
+</div>
+
+<div class="slide center" data-slide="10b" data-section="The Tier System">
+  <div class="label anim">Control</div>
+  <h2 class="anim d1 mb">Overrides &amp; Natural Language</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">Tier Override Flags</h4>
+      <p class="desc mb">Append to any command to force a specific tier:</p>
+      <div class="terminal" style="max-width:100%;">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">Overrides</span>
+        </div>
+        <div class="terminal-body" style="font-size:.75rem;">
+<span class="cm">// Force a tier</span>
+<span class="cmd">/vibe</span> fix the auth bug <span class="highlight">--standard</span>
+<span class="cmd">/vibe</span> add sidebar <span class="highlight">--light</span>
+
+<span class="cm">// Modifiers</span>
+<span class="cmd">/vibe</span> tweak spacing <span class="highlight">--skip-test</span>
+<span class="cmd">/vibe</span> fix nav bug <span class="highlight">--with-spec</span>
+<span class="cmd">/vibe</span> fix layout <span class="highlight">--with-review</span>
+
+<span class="cm">// Or just say it naturally:</span>
+<span class="out">"actually make this STANDARD"</span>
+<span class="out">"this needs more ceremony"</span>
+<span class="out">"keep it simple, just do it"</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-sm">Natural Language Triggers</h4>
+      <p class="desc mb">The workflow responds to natural approval and rejection cues:</p>
+      <div class="card card-sm card-green mb-sm">
+        <h4 class="green" style="font-size:.82rem;">&#10003; Approval (proceed to next phase)</h4>
+        <p class="desc" style="font-size:.8rem;">"approved" &bull; "looks good" &bull; "green light" &bull; "ship it" &bull; "lgtm"</p>
+      </div>
+      <div class="card card-sm card-red mb-sm">
+        <h4 class="red" style="font-size:.82rem;">&#10007; Rejection (revise current phase)</h4>
+        <p class="desc" style="font-size:.8rem;">"change this" &bull; "not quite" &bull; "redo" &bull; "wrong"</p>
+      </div>
+      <div class="card card-sm card-blue mb-sm">
+        <h4 class="blue" style="font-size:.82rem;">&#8593; Upgrade tier</h4>
+        <p class="desc" style="font-size:.8rem;">"this needs more ceremony" &bull; "make it thorough"</p>
+      </div>
+      <div class="card card-sm card-yellow">
+        <h4 class="yellow" style="font-size:.82rem;">&#8595; Downgrade tier</h4>
+        <p class="desc" style="font-size:.8rem;">"keep it simple" &bull; "just do it" &bull; "no spec needed"</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 5: COMMANDS
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="11" data-section="Commands">
+  <div class="divider-num anim">05</div>
+  <div class="label anim d1">Section Five</div>
+  <h1 class="anim d2">Commands</h1>
+  <p class="subtitle anim d3">One command to start. The workflow figures out the rest.</p>
+</div>
+
+<div class="slide center" data-slide="12" data-section="Commands">
+  <div class="label anim">Primary Command</div>
+  <h2 class="anim d1 mb">The <code>/vibe</code> Router</h2>
+  <p class="subtitle anim d2 mb">Your main entry point. It auto-detects the tier and runs the workflow.</p>
+  <div class="terminal anim d3" style="max-width:750px;">
+    <div class="terminal-bar">
+      <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+      <span class="terminal-title">Claude Code</span>
+    </div>
+    <div class="terminal-body">
+<span class="prompt">$</span> <span class="cmd">/vibe</span> <span class="highlight">tweak</span> fix the typo in the footer         <span class="out"># &rarr; MINIMAL</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> <span class="highlight">fix</span> login redirect broken on Safari    <span class="out"># &rarr; LIGHT</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> <span class="highlight">feature</span> add user authentication        <span class="out"># &rarr; STANDARD</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> <span class="highlight">epic</span> redesign the data model             <span class="out"># &rarr; FULL</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> <span class="highlight">hotfix</span> patch SQL injection              <span class="out"># &rarr; EMERGENCY</span>
+
+<span class="out">// or just describe it &mdash; auto-detection picks the tier:</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> update the hero copy to "Ship faster"  <span class="out"># &rarr; MINIMAL</span>
+<span class="prompt">$</span> <span class="cmd">/vibe</span> add shopping cart with checkout         <span class="out"># &rarr; STANDARD</span>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="13" data-section="Commands">
+  <div class="label anim">Full Command Set</div>
+  <h2 class="anim d1 mb">All Commands</h2>
+  <div class="grid-3 anim d2" style="max-width:1020px;">
+    <div class="card card-sm">
+      <div class="section-label accent-l">Workflow Control</div>
+      <div class="codeblock" style="background:transparent;border:none;padding:4px 0;font-size:.78rem;line-height:1.9;">
+<span class="kw">/vibe status</span>    <span class="cm">Show state</span>
+<span class="kw">/vibe pause</span>     <span class="cm">Save &amp; stop</span>
+<span class="kw">/vibe resume</span>    <span class="cm">Continue</span>
+<span class="kw">/vibe approve</span>   <span class="cm">Approve phase</span>
+<span class="kw">/vibe abort</span>     <span class="cm">Cancel</span></div>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label accent-l">Standard Workflow</div>
+      <div class="codeblock" style="background:transparent;border:none;padding:4px 0;font-size:.78rem;line-height:1.9;">
+<span class="kw">/spec</span>          <span class="cm">Write spec</span>
+<span class="kw">/test-plan</span>     <span class="cm">Plan tests</span>
+<span class="kw">/implement</span>     <span class="cm">TDD cycle</span>
+<span class="kw">/review</span>        <span class="cm">Quality gates</span>
+<span class="kw">/ship</span>          <span class="cm">Commit + PR</span></div>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label accent-l">Utilities</div>
+      <div class="codeblock" style="background:transparent;border:none;padding:4px 0;font-size:.78rem;line-height:1.9;">
+<span class="kw">/fix</span>           <span class="cm">Quick fix</span>
+<span class="kw">/bug</span>           <span class="cm">5 Whys analysis</span>
+<span class="kw">/status</span>        <span class="cm">Current state</span>
+<span class="kw">/mock-data-doc</span> <span class="cm">Backend handoff</span>
+<span class="kw">/worktree</span>      <span class="cm">Parallel work</span>
+<span class="kw">/getting-started</span> <span class="cm">Onboarding</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="13b" data-section="Commands">
+  <div class="label anim">Git</div>
+  <h2 class="anim d1 mb">Conventional Commits</h2>
+  <p class="subtitle anim d2 mb">Every commit follows a strict format. AI suggests the message, you approve it.</p>
+  <div class="grid-2 anim d3" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">Format</h4>
+      <div class="codeblock" style="font-size:.82rem;">
+<span class="kw">&lt;type&gt;</span>(<span class="fn">scope</span>): <span class="str">description</span>
+      </div>
+      <table class="tbl mt-sm" style="font-size:.78rem;">
+        <thead><tr><th>Type</th><th>When</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code style="font-size:.72rem;">feat</code></td><td>New feature</td><td class="dim">feat(auth): add login with email</td></tr>
+          <tr><td><code style="font-size:.72rem;">fix</code></td><td>Bug fix</td><td class="dim">fix(auth): prevent session expiry</td></tr>
+          <tr><td><code style="font-size:.72rem;">spec</code></td><td>Specification</td><td class="dim">spec(auth): add login spec</td></tr>
+          <tr><td><code style="font-size:.72rem;">test</code></td><td>Tests only</td><td class="dim">test(auth): add login AC tests</td></tr>
+          <tr><td><code style="font-size:.72rem;">docs</code></td><td>Documentation</td><td class="dim">docs(auth): add login docs</td></tr>
+          <tr><td><code style="font-size:.72rem;">refactor</code></td><td>Code restructure</td><td class="dim">refactor(auth): extract hook</td></tr>
+          <tr><td><code style="font-size:.72rem;">chore</code></td><td>Maintenance</td><td class="dim">chore(deps): update packages</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h4 class="mb-sm">Rules</h4>
+      <ul class="check-list" style="font-size:.85rem;">
+        <li><span class="ic red">&#10007;</span> <strong>NEVER</strong> auto-commit or auto-push</li>
+        <li><span class="ic red">&#10007;</span> <strong>NEVER</strong> force push or reset --hard</li>
+        <li><span class="ic green">&#10003;</span> AI suggests commit message</li>
+        <li><span class="ic green">&#10003;</span> You approve before it runs</li>
+        <li><span class="ic green">&#10003;</span> Message = WHY, not WHAT</li>
+      </ul>
+      <h4 class="mt mb-sm">Recommended Commit Points</h4>
+      <div style="font-size:.82rem;color:var(--text-dim);line-height:1.9;">
+        1. After spec approved &rarr; <code style="font-size:.72rem;">spec(feature): ...</code><br>
+        2. After tests written &rarr; <code style="font-size:.72rem;">test(feature): ...</code><br>
+        3. After implementation &rarr; <code style="font-size:.72rem;">feat(feature): ...</code><br>
+        4. After bug fix &rarr; <code style="font-size:.72rem;">fix(feature): ...</code><br>
+        5. After docs generated &rarr; <code style="font-size:.72rem;">docs(feature): ...</code>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 6: THE STANDARD WORKFLOW
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="14" data-section="The 5-Phase Workflow">
+  <div class="divider-num anim">06</div>
+  <div class="label anim d1">Section Six</div>
+  <h1 class="anim d2">The 5-Phase<br>Workflow</h1>
+  <p class="subtitle anim d3">How features are built (STANDARD tier and above)</p>
+</div>
+
+<div class="slide center" data-slide="15" data-section="The 5-Phase Workflow">
+  <div class="label anim">Overview</div>
+  <h2 class="anim d1 mb">Spec &rarr; Test Plan &rarr; TDD &rarr; Review &rarr; Present</h2>
+  <div class="flow mt anim d2">
+    <div class="flow-box" style="border-color:var(--accent-border);">&#128203; Spec</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-stop">APPROVE</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--blue-border);">&#129514; Test Plan</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-stop">APPROVE</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--green-border);">&#9881; TDD</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--yellow-border);">&#128269; Review</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-box" style="border-color:var(--orange-border);">&#127881; Present</div>
+    <span class="flow-arr">&rarr;</span>
+    <div class="flow-stop">APPROVE</div>
+  </div>
+  <p class="dim xs mt anim d3">AI stops and waits for your explicit approval at every gate marked <span class="red">APPROVE</span>.</p>
+  <div class="grid-2 mt anim d4" style="max-width:950px;">
+    <div class="card card-sm">
+      <h4>&#128100; Tech Lead (Alex Chen)</h4>
+      <p class="desc">Active during Spec &amp; Implementation. Focuses on architecture, clean code, TDD, performance.</p>
+    </div>
+    <div class="card card-sm">
+      <h4>&#128100; Quality Lead (Dr. Priya Patel)</h4>
+      <p class="desc">Active during Test Plan, Review &amp; User Testing. Focuses on quality gates, UX, accessibility.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="16" data-section="The 5-Phase Workflow">
+  <div class="label anim">Phase 1</div>
+  <h2 class="anim d1 mb">Specification</h2>
+  <p class="subtitle anim d2 mb">Define exactly what to build with Given/When/Then acceptance criteria.</p>
+  <div class="grid-2 anim d3" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">What Gets Created</h4>
+      <div class="codeblock" style="font-size:.78rem;line-height:1.7;white-space:pre-wrap;">docs/specs/user-authentication.md
+
+<span class="cm"># Feature: User Authentication</span>
+
+<span class="cm">## Acceptance Criteria</span>
+
+<span class="kw">### AC-001: Successful login</span>
+
+<span class="str">GIVEN</span> a registered user on the login page
+<span class="str">WHEN</span> they enter valid email and password
+  <span class="str">AND</span> click "Sign In"
+<span class="str">THEN</span> they are redirected to dashboard
+  <span class="str">AND</span> see welcome message with their name
+  <span class="str">AND</span> session is created with 24h expiry
+
+<span class="kw">### AC-002: Failed login</span>
+
+<span class="str">GIVEN</span> a user on the login page
+<span class="str">WHEN</span> they enter an invalid password
+<span class="str">THEN</span> they see "Invalid email or password"
+  <span class="str">AND</span> the password field is cleared
+  <span class="str">AND</span> failed attempt counter increments</div>
+    </div>
+    <div>
+      <h4 class="mb-sm">Why It Matters</h4>
+      <div class="card card-sm mb-sm" style="border-color:var(--green-border);">
+        <h4>Zero Ambiguity</h4>
+        <p class="desc">Each criterion is testable. "Make login secure" becomes 5-6 precise acceptance criteria.</p>
+      </div>
+      <div class="card card-sm mb-sm" style="border-color:var(--green-border);">
+        <h4>Cheapest Place to Change</h4>
+        <p class="desc">Fixing a spec line costs nothing. Fixing implemented code costs a full TDD cycle.</p>
+      </div>
+      <div class="card card-sm" style="border-color:var(--green-border);">
+        <h4>Contract With AI</h4>
+        <p class="desc">The spec is what AI implements. Clear spec = correct implementation. Vague spec = rework.</p>
+      </div>
+      <div class="card card-sm mt-sm card-red" style="text-align:center;">
+        <p style="font-size:.88rem;color:var(--text);"><strong class="red">&#128721; STOP &amp; WAIT</strong><br>You must approve the spec before any code is written.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="17" data-section="The 5-Phase Workflow">
+  <div class="label anim">Phase 2</div>
+  <h2 class="anim d1 mb">Test Planning</h2>
+  <p class="subtitle anim d2 mb">Plan exactly how each acceptance criterion will be verified.</p>
+  <div class="content anim d3">
+    <table class="tbl" style="max-width:950px;margin:0 auto;">
+      <thead>
+        <tr>
+          <th>AC</th>
+          <th>Level</th>
+          <th>Test File</th>
+          <th>Test Name</th>
+          <th>Edge Cases</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>AC-001</code></td>
+          <td>Integration</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td>
+          <td>should redirect on valid login</td>
+          <td>Empty fields, whitespace email</td>
+        </tr>
+        <tr>
+          <td><code>AC-002</code></td>
+          <td>Integration</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td>
+          <td>should show error on invalid password</td>
+          <td>SQL injection, XSS in email</td>
+        </tr>
+        <tr>
+          <td><code>AC-003</code></td>
+          <td>Unit + E2E</td>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td>
+          <td>should lock after 3 failed attempts</td>
+          <td>Rapid successive attempts, race conditions</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="card mt" style="max-width:950px;margin:16px auto 0;border-color:var(--red-border);background:var(--red-dim);text-align:center;">
+      <p style="font-size:.88rem;color:var(--text);"><strong class="red">&#128721; STOP &amp; WAIT</strong> &mdash; You approve the test plan before implementation begins.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="18" data-section="The 5-Phase Workflow">
+  <div class="label anim">Phase 3</div>
+  <h2 class="anim d1 mb">TDD Implementation</h2>
+  <p class="subtitle anim d2 mb">Red &rarr; Green &rarr; Blue. For every acceptance criterion.</p>
+  <div class="grid-3 anim d3" style="max-width:950px;">
+    <div class="card card-sm" style="border-color:var(--red-border);">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;color:var(--red);margin-bottom:8px;">RED</div>
+      <h4>Write Failing Test</h4>
+      <p class="desc">Test must actually fail. This proves the test is valid and catches a real behavior.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;line-height:1.6;background:var(--bg);">
+<span class="cm">// This MUST fail first</span>
+<span class="fn">test</span>(<span class="str">'should redirect on valid login'</span>, () => {
+  <span class="fn">render</span>(&lt;LoginPage /&gt;);
+  <span class="cm">// ... test the behavior</span>
+  <span class="fn">expect</span>(result).toBe(<span class="str">'dashboard'</span>);
+});
+<span class="err">// &#10007; FAIL &mdash; LoginPage doesn't exist yet</span></div>
+    </div>
+    <div class="card card-sm" style="border-color:var(--green-border);">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;color:var(--green);margin-bottom:8px;">GREEN</div>
+      <h4>Minimum Code to Pass</h4>
+      <p class="desc">Write the simplest code that makes the test pass. No over-engineering. No extras.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;line-height:1.6;background:var(--bg);">
+<span class="cm">// Just enough to pass</span>
+<span class="kw">function</span> <span class="fn">LoginPage</span>() {
+  <span class="cm">// implement login logic</span>
+  <span class="cm">// redirect on success</span>
+  <span class="kw">return</span> &lt;form&gt;...&lt;/form&gt;;
+}
+<span class="ok">// &#10003; PASS</span></div>
+    </div>
+    <div class="card card-sm" style="border-color:var(--blue-border);">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:800;color:var(--blue);margin-bottom:8px;">BLUE</div>
+      <h4>Refactor Safely</h4>
+      <p class="desc">Improve code quality, extract helpers, clean up &mdash; while keeping all tests passing.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;line-height:1.6;background:var(--bg);">
+<span class="cm">// Extract, simplify, improve</span>
+<span class="kw">const</span> { <span class="fn">handleLogin</span> } = <span class="fn">useAuth</span>();
+
+<span class="cm">// All tests still passing</span>
+<span class="ok">// &#10003; PASS &mdash; safe to move on</span>
+
+<span class="cm">// Update traceability matrix:</span>
+<span class="cm">// AC-001 &rarr; login.test.ts &rarr; PASSED</span></div>
+    </div>
+  </div>
+  <p class="dim xs mt anim d4">This cycle repeats for every AC: AC-001, AC-002, AC-003... until all pass.</p>
+</div>
+
+<div class="slide center" data-slide="19" data-section="The 5-Phase Workflow">
+  <div class="label anim">Phase 4 &amp; 5</div>
+  <h2 class="anim d1 mb">Review &amp; Present</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div>
+      <h3 class="mb-sm">Phase 4: Quality Review</h3>
+      <p class="desc mb">All applicable quality gates are run. A review document is created.</p>
+      <div class="terminal" style="max-width:100%;">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">Quality Gates</span>
+        </div>
+        <div class="terminal-body" style="font-size:.75rem;line-height:2;">
+<span class="ok">&#10003;</span> Tests pass        <span class="ok">PASSED</span>
+<span class="ok">&#10003;</span> Lint clean        <span class="ok">PASSED</span>
+<span class="ok">&#10003;</span> All ACs met       <span class="ok">PASSED</span>
+<span class="ok">&#10003;</span> Responsive        <span class="ok">PASSED</span>
+<span class="ok">&#10003;</span> Code review       <span class="ok">PASSED</span>
+<span class="ok">&#10003;</span> Visual            <span class="ok">PASSED</span>
+<span class="out">&mdash;</span> Performance       <span class="out">SKIPPED (prototype)</span>
+<span class="out">&mdash;</span> Accessibility     <span class="out">SKIPPED (prototype)</span>
+<span class="out">&mdash;</span> Cross-browser     <span class="out">SKIPPED (prototype)</span>
+<span class="out">&mdash;</span> Build             <span class="out">SKIPPED (prototype)</span>
+<span class="out">&mdash;</span> Security          <span class="out">SKIPPED (prototype)</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h3 class="mb-sm">Phase 5: Present to You</h3>
+      <p class="desc mb">The completed feature is presented with full traceability.</p>
+      <div class="codeblock" style="font-size:.75rem;line-height:1.7;white-space:pre-wrap;"><span class="kw">FEATURE COMPLETE:</span> User Authentication
+<span class="kw">TIER:</span> STANDARD
+
+<span class="kw">WHAT WAS BUILT:</span>
+Login page with email/password, session
+management, and account lockout.
+
+<span class="kw">ACCEPTANCE CRITERIA:</span>
+<span class="ok">&#10003;</span> AC-001: Successful login &mdash; PASSED
+<span class="ok">&#10003;</span> AC-002: Failed login &mdash; PASSED
+<span class="ok">&#10003;</span> AC-003: Account lockout &mdash; PASSED
+
+<span class="kw">QUALITY GATES:</span> ALL PASSED
+
+<span class="kw">HOW TO TEST:</span>
+1. Navigate to /login
+2. Enter test@example.com / password123
+3. Verify redirect to /dashboard
+
+<span class="warn">AWAITING YOUR APPROVAL</span></div>
+      <div class="card card-sm mt-sm card-red" style="text-align:center;">
+        <p style="font-size:.85rem;color:var(--text);"><strong class="red">&#128721; STOP &amp; WAIT</strong><br>Your approval triggers auto-generated docs.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 7: QUALITY GATES
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="20" data-section="Quality Gates">
+  <div class="divider-num anim">07</div>
+  <div class="label anim d1">Section Seven</div>
+  <h1 class="anim d2">Quality Gates</h1>
+  <p class="subtitle anim d3">Nothing ships without verification.</p>
+</div>
+
+<div class="slide center" data-slide="21" data-section="Quality Gates">
+  <div class="label anim">Gates by Tier</div>
+  <h2 class="anim d1 mb">What Runs When</h2>
+  <table class="tbl anim d2">
+    <thead>
+      <tr><th>Gate</th><th>MINIMAL</th><th>LIGHT</th><th>STANDARD<br><span class="dim" style="font-weight:400;text-transform:none;">(prototype)</span></th><th>STANDARD<br><span class="dim" style="font-weight:400;text-transform:none;">(production)</span></th><th>FULL</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1. Tests pass</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>2. Lint clean</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>3. All ACs met</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>4. Responsive</td><td class="skp">&mdash;</td><td class="opt">opt</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>5. Code review</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>6. Performance</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>7. Accessibility</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>8. Cross-browser</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>9. Build</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>10. Security</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="skp">&mdash;</td><td class="chk">&#10003;</td><td class="chk">&#10003;</td></tr>
+      <tr><td>11. Visual</td><td class="skp">&mdash;</td><td class="opt">opt</td><td class="opt">opt</td><td class="opt">opt</td><td class="chk">&#10003;</td></tr>
+    </tbody>
+  </table>
+  <p class="dim xs mt anim d3"><span class="chk">&#10003;</span> = required &nbsp;&nbsp; <span class="opt">opt</span> = optional &nbsp;&nbsp; <span class="skp">&mdash;</span> = skipped &nbsp;&nbsp;&bull;&nbsp;&nbsp; CI/CD auto-runs: lint, tests, typecheck, build on every PR</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 8: TRACEABILITY & BUGS
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="22" data-section="Traceability & Bugs">
+  <div class="divider-num anim">08</div>
+  <div class="label anim d1">Section Eight</div>
+  <h1 class="anim d2">Traceability<br>&amp; Bug Handling</h1>
+  <p class="subtitle anim d3">Nothing falls through the cracks. Bugs don't recur.</p>
+</div>
+
+<div class="slide center" data-slide="23" data-section="Traceability & Bugs">
+  <div class="label anim">Traceability Matrix</div>
+  <h2 class="anim d1 mb">Every Criterion &harr; Every Test</h2>
+  <div class="anim d2" style="max-width:800px;width:100%;">
+    <table class="tbl">
+      <thead><tr><th>Criterion</th><th>Test File</th><th>Test Name</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code>AC-001</code></td><td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td><td>should redirect on valid login</td><td class="chk">&#10003; PASSED</td></tr>
+        <tr><td><code>AC-002</code></td><td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td><td>should show error on invalid password</td><td class="chk">&#10003; PASSED</td></tr>
+        <tr><td><code>AC-003</code></td><td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;">login.test.ts</td><td>should lock after 3 failed attempts</td><td class="chk">&#10003; PASSED</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2 mt anim d3" style="max-width:800px;">
+    <div class="card card-sm">
+      <h4>&#128027; Bug Handling: 5 Whys</h4>
+      <div class="codeblock" style="font-size:.75rem;line-height:1.7;background:var(--bg);white-space:pre-wrap;margin-top:8px;">
+<span class="err">Bug:</span> Session expires immediately
+
+<span class="num">1.</span> Why? &rarr; Token not stored
+<span class="num">2.</span> Why? &rarr; localStorage call failed
+<span class="num">3.</span> Why? &rarr; localStorage undefined in SSR
+<span class="num">4.</span> Why? &rarr; Component rendered server-side
+<span class="num">5.</span> Why? &rarr; Missing "use client" directive
+
+<span class="ok">Root cause:</span> Needs "use client" directive
+<span class="ok">Prevention:</span> Lint rule for client-only APIs</div>
+    </div>
+    <div class="card card-sm">
+      <h4>&#128736; Bug Workflow</h4>
+      <ul class="step-list" style="max-width:100%;">
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">1</span><span class="step-text xs"><strong>STOP</strong> &mdash; Don't fix immediately</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">2</span><span class="step-text xs"><strong>ANALYZE</strong> &mdash; 5 Whys root cause</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">3</span><span class="step-text xs"><strong>DOCUMENT</strong> &mdash; Post-mortem in docs/bugs/</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">4</span><span class="step-text xs"><strong>TEST</strong> &mdash; Write failing regression test</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">5</span><span class="step-text xs"><strong>FIX</strong> &mdash; Minimal fix</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">6</span><span class="step-text xs"><strong>VERIFY</strong> &mdash; All tests pass</span></li>
+        <li style="padding:6px 0;"><span class="step-num" style="min-width:24px;height:24px;font-size:.65rem;">7</span><span class="step-text xs"><strong>CLOSE</strong> &mdash; Update post-mortem, save to memory</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 9: INFRASTRUCTURE & TOOLING
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="24" data-section="Infrastructure">
+  <div class="divider-num anim">09</div>
+  <div class="label anim d1">Section Nine</div>
+  <h1 class="anim d2">Infrastructure<br>&amp; Tooling</h1>
+  <p class="subtitle anim d3">Error recovery, state persistence, hooks, MCP servers, CI/CD</p>
+</div>
+
+<div class="slide center" data-slide="25" data-section="Infrastructure">
+  <div class="label anim">Resilience</div>
+  <h2 class="anim d1 mb">Error Recovery</h2>
+  <p class="subtitle anim d2 mb">Every skill has structured failure handling. No improvising when things break.</p>
+  <div class="grid-2 anim d3" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">3 Recovery Principles</h4>
+      <div class="card card-sm card-red mb-sm">
+        <h4 style="font-size:.85rem;"><span class="red">1.</span> After ANY fix &rarr; re-run ALL checks</h4>
+        <p class="desc">Never re-run just the one that failed. A fix can break other things.</p>
+      </div>
+      <div class="card card-sm card-yellow mb-sm">
+        <h4 style="font-size:.85rem;"><span class="yellow">2.</span> Report honestly &mdash; never guess</h4>
+        <p class="desc">If stuck after reasonable effort, stop and ask for guidance. Don't fabricate solutions.</p>
+      </div>
+      <div class="card card-sm card-blue">
+        <h4 style="font-size:.85rem;"><span class="blue">3.</span> Escalate scope when needed</h4>
+        <p class="desc">If a <code>/fix</code> turns complex (3+ files, unclear cause), upgrade to STANDARD with <code>/vibe feature</code>.</p>
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-sm">Skill-Specific Recovery</h4>
+      <table class="tbl" style="font-size:.75rem;">
+        <thead><tr><th>Skill</th><th>Failure</th><th>Recovery</th></tr></thead>
+        <tbody>
+          <tr><td><code style="font-size:.68rem;">/spec</code></td><td>User rejects</td><td>Revise specific sections</td></tr>
+          <tr><td><code style="font-size:.68rem;">/implement</code></td><td>RED test passes</td><td>Delete &amp; rewrite the test</td></tr>
+          <tr><td><code style="font-size:.68rem;">/implement</code></td><td>GREEN breaks others</td><td>REVERT, fix design first</td></tr>
+          <tr><td><code style="font-size:.68rem;">/review</code></td><td>Gate fails</td><td>Fix then re-run ALL gates</td></tr>
+          <tr><td><code style="font-size:.68rem;">/ship</code></td><td>Hook fails</td><td>Fix &amp; NEW commit (never amend)</td></tr>
+          <tr><td><code style="font-size:.68rem;">/bug</code></td><td>Can't reproduce</td><td>Document attempts, ask user</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="25b" data-section="Infrastructure">
+  <div class="label anim">Persistence</div>
+  <h2 class="anim d1 mb">State &amp; Memory</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">Workflow State <span class="dim xs">.vibe/state.json</span></h4>
+      <p class="desc mb-sm">Every workflow tracks its progress. Pause, close your laptop, resume tomorrow.</p>
+      <div class="codeblock" style="font-size:.72rem;line-height:1.6;white-space:pre-wrap;">{
+  <span class="str">"active"</span>: {
+    <span class="str">"feature"</span>: <span class="str">"user-authentication"</span>,
+    <span class="str">"tier"</span>: <span class="str">"STANDARD"</span>,
+    <span class="str">"phase"</span>: <span class="str">"implement"</span>,
+    <span class="str">"acceptanceCriteria"</span>: {
+      <span class="str">"AC-001"</span>: { <span class="str">"status"</span>: <span class="str">"passed"</span> },
+      <span class="str">"AC-002"</span>: { <span class="str">"status"</span>: <span class="str">"in-progress"</span> },
+      <span class="str">"AC-003"</span>: { <span class="str">"status"</span>: <span class="str">"pending"</span> }
+    },
+    <span class="str">"gates"</span>: { <span class="str">"lint"</span>: <span class="str">"passed"</span>, <span class="cm">...</span> }
+  },
+  <span class="str">"history"</span>: [ <span class="cm">/* past workflows */</span> ]
+}</div>
+      <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--text-dim);line-height:2;">
+        <span class="accent">/vibe pause</span> &rarr; saves current position<br>
+        <span class="accent">/vibe resume</span> &rarr; picks up where you left off<br>
+        <span class="accent">/status</span> &rarr; shows progress at any time
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-sm">Memory <span class="dim xs">Cross-Session Learning</span></h4>
+      <p class="desc mb-sm">The workflow gets smarter over time via the memory MCP server.</p>
+      <div class="card card-sm card-green mb-sm">
+        <h4 class="green" style="font-size:.82rem;">Saved After Workflows</h4>
+        <p class="desc" style="font-size:.78rem;">Feature name, tier used, which gates passed/failed, issues encountered, your tier override patterns</p>
+      </div>
+      <div class="card card-sm card-green mb-sm">
+        <h4 class="green" style="font-size:.82rem;">Saved After Bug Fixes</h4>
+        <p class="desc" style="font-size:.78rem;">Bug category, root cause pattern, prevention measure applied</p>
+      </div>
+      <div class="card card-sm card-blue">
+        <h4 class="blue" style="font-size:.82rem;">Recalled Before New Work</h4>
+        <p class="desc" style="font-size:.78rem;">"A similar auth feature was built last week at STANDARD tier. Lesson learned: add rate limiting early."</p>
+      </div>
+      <h4 class="mt mb-sm">Visual Verification</h4>
+      <p class="desc mb-sm">During <code>/review</code>, Playwright captures screenshots at 3 breakpoints:</p>
+      <div style="display:flex;gap:6px;">
+        <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.65rem;color:var(--text-dim);">375px &#128241;<br><span style="font-size:.6rem;">Mobile</span></div>
+        <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.65rem;color:var(--text-dim);">768px &#128218;<br><span style="font-size:.6rem;">Tablet</span></div>
+        <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:8px;text-align:center;font-size:.65rem;color:var(--text-dim);">1440px &#128187;<br><span style="font-size:.6rem;">Desktop</span></div>
+      </div>
+      <p class="dim" style="font-size:.72rem;margin-top:6px;">If Playwright unavailable: marked SKIPPED, you verify manually.</p>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="25c" data-section="Infrastructure">
+  <div class="label anim">Automation</div>
+  <h2 class="anim d1 mb">Hooks, MCP Servers &amp; CI/CD</h2>
+  <div class="grid-3 anim d2" style="max-width:1020px;">
+    <div class="card card-sm">
+      <div class="section-label red-l">Hooks</div>
+      <h4>Automatic Guards</h4>
+      <p class="desc mb-sm">Configured in <code>.claude/settings.json</code>:</p>
+      <div style="font-size:.78rem;line-height:1.8;color:var(--text);">
+        <strong>Auto-lint on save</strong><br>
+        <span class="dim">Every Write/Edit on .js/.ts/.tsx</span><br>
+        <span class="dim">&rarr; runs <code style="font-size:.7rem;">eslint --fix</code></span>
+      </div>
+      <div style="font-size:.78rem;line-height:1.8;color:var(--text);margin-top:8px;">
+        <strong>Pre-commit gate</strong><br>
+        <span class="dim">Before every git commit</span><br>
+        <span class="dim">&rarr; runs <code style="font-size:.7rem;">lint && test</code></span>
+      </div>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label cyan-l">MCP Servers</div>
+      <h4>Extended Capabilities</h4>
+      <p class="desc mb-sm">Configured in <code>.mcp.json</code>:</p>
+      <div style="font-size:.75rem;line-height:1.9;color:var(--text-dim);">
+        <span class="bright">context7</span> &mdash; Live framework docs<br>
+        <span class="bright">playwright</span> &mdash; Visual verification<br>
+        <span class="bright">github</span> &mdash; Issues, PRs, Actions<br>
+        <span class="bright">memory</span> &mdash; Cross-session knowledge<br>
+        <span class="bright">sequential-thinking</span> &mdash; Architecture
+      </div>
+      <div class="card card-sm mt-sm" style="border-color:var(--green-border);background:var(--green-dim);">
+        <p style="font-size:.75rem;color:var(--text);">Add <code style="font-size:.7rem;">use context7</code> to any prompt with library APIs!</p>
+      </div>
+    </div>
+    <div class="card card-sm">
+      <div class="section-label yellow-l">CI/CD</div>
+      <h4>GitHub Actions Pipeline</h4>
+      <p class="desc mb-sm"><code>.github/workflows/quality-gates.yml</code></p>
+      <div style="font-size:.78rem;line-height:1.8;color:var(--text);">
+        <strong>Runs on every PR:</strong>
+      </div>
+      <div style="font-size:.75rem;line-height:1.9;color:var(--text-dim);">
+        <span class="green">&#10003;</span> <code style="font-size:.7rem;">npm run lint</code><br>
+        <span class="green">&#10003;</span> <code style="font-size:.7rem;">npm run typecheck</code><br>
+        <span class="green">&#10003;</span> <code style="font-size:.7rem;">npm run test</code><br>
+        <span class="green">&#10003;</span> <code style="font-size:.7rem;">npm run build</code>
+      </div>
+      <div style="font-size:.75rem;line-height:1.8;color:var(--text);margin-top:8px;">
+        <strong>Manual (during /review):</strong>
+      </div>
+      <div style="font-size:.75rem;color:var(--text-dim);">
+        Responsive, visual, a11y, performance, security, cross-browser
+      </div>
+    </div>
+  </div>
+  <div class="grid-2 mt anim d3" style="max-width:1020px;">
+    <div class="card card-sm" style="text-align:center;border-color:var(--accent-border);">
+      <p style="font-size:.88rem;color:var(--text);"><strong class="accent">CLAUDE.md</strong> is the single source of truth. Claude reads this file. YAML configs in <code style="font-size:.75rem;">config/</code> are <strong>reference-only</strong> &mdash; Claude does NOT read YAML.</p>
+    </div>
+    <div class="card card-sm" style="text-align:center;border-color:var(--accent-border);">
+      <p style="font-size:.88rem;color:var(--text);">Personal preferences: copy <code style="font-size:.75rem;">CLAUDE.local.md.example</code> to <code style="font-size:.75rem;">CLAUDE.local.md</code> (gitignored). Override workflow defaults without touching shared config.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 10: GETTING STARTED
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="26" data-section="Getting Started">
+  <div class="divider-num anim">10</div>
+  <div class="label anim d1">Section Ten</div>
+  <h1 class="anim d2">Getting Started</h1>
+  <p class="subtitle anim d3">From zero to productive in minutes</p>
+</div>
+
+<div class="slide center" data-slide="27" data-section="Getting Started">
+  <div class="label anim">Setup</div>
+  <h2 class="anim d1 mb">Project Setup</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div>
+      <h4 class="mb-sm">Step 1: Clone &amp; Initialize</h4>
+      <div class="terminal" style="max-width:100%;">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">Terminal</span>
+        </div>
+        <div class="terminal-body" style="font-size:.75rem;">
+<span class="prompt">$</span> <span class="cmd">git clone vibecoding-workflow-iggy my-app</span>
+<span class="prompt">$</span> <span class="cmd">cd my-app</span>
+<span class="prompt">$</span> <span class="cmd">./scripts/init-project.sh</span>
+<span class="out">? Project name: my-app</span>
+<span class="out">? Project type: web</span>
+<span class="out">? Approach: prototype</span>
+<span class="out">? Frontend framework: Next.js</span>
+<span class="ok">&#10003; Project configured</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-sm">Step 2: Scaffold Foundation</h4>
+      <div class="terminal" style="max-width:100%;">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">Terminal</span>
+        </div>
+        <div class="terminal-body" style="font-size:.75rem;">
+<span class="out"># Next.js</span>
+<span class="prompt">$</span> <span class="cmd">./scripts/add-mop-foundation.sh</span>
+<span class="prompt">$</span> <span class="cmd">npm install</span>
+<span class="prompt">$</span> <span class="cmd">npm run dev</span>
+
+<span class="out"># React Native</span>
+<span class="prompt">$</span> <span class="cmd">./scripts/add-mop-foundation-rn.sh</span>
+<span class="prompt">$</span> <span class="cmd">pnpm install</span>
+<span class="prompt">$</span> <span class="cmd">pnpm start</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="anim d3 mt" style="max-width:950px;width:100%;">
+    <h4 class="mb-sm">Step 3: Start Building</h4>
+    <div class="terminal" style="max-width:100%;">
+      <div class="terminal-bar">
+        <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+        <span class="terminal-title">Claude Code</span>
+      </div>
+      <div class="terminal-body" style="font-size:.78rem;">
+<span class="prompt">$</span> <span class="cmd">/getting-started</span>                          <span class="out"># first time? interactive walkthrough</span>
+<span class="prompt">$</span> <span class="cmd">/vibe feature</span> <span class="highlight">add landing page with hero</span>  <span class="out"># start your first feature</span>
+<span class="out">...</span>
+<span class="warn">[Spec ready for review]</span>
+<span class="prompt">$</span> <span class="cmd">approved</span>                                   <span class="out"># approve and continue</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="28" data-section="Getting Started">
+  <div class="label anim">Architecture</div>
+  <h2 class="anim d1 mb">Where Everything Lives</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div class="file-tree">
+<span class="dir">.</span>
+├── <span class="important">CLAUDE.md</span>              <span class="note"># Source of truth</span>
+├── <span class="file">README.md</span>
+│
+├── <span class="dir">.claude/</span>
+│   ├── <span class="file">settings.json</span>      <span class="note"># Hooks</span>
+│   └── <span class="dir">skills/</span>            <span class="note"># Slash commands</span>
+│       ├── <span class="dir">vibe/</span>          <span class="note"># /vibe router</span>
+│       ├── <span class="dir">fix/</span>           <span class="note"># /fix shortcut</span>
+│       ├── <span class="dir">spec/</span>          <span class="note"># /spec</span>
+│       ├── <span class="dir">test-plan/</span>     <span class="note"># /test-plan</span>
+│       ├── <span class="dir">implement/</span>     <span class="note"># /implement</span>
+│       ├── <span class="dir">review/</span>        <span class="note"># /review</span>
+│       ├── <span class="dir">ship/</span>          <span class="note"># /ship</span>
+│       ├── <span class="dir">bug/</span>           <span class="note"># /bug</span>
+│       └── <span class="dir">...</span>
+│
+├── <span class="dir">.vibe/</span>                 <span class="note"># Workflow state (gitignored)</span>
+│   └── <span class="file">state.json</span>
+    </div>
+    <div class="file-tree">
+<span class="dir">docs/</span>
+├── <span class="important">METHODOLOGY.md</span>     <span class="note"># Philosophy (the "why")</span>
+├── <span class="important">WORKFLOW_RULES.md</span>   <span class="note"># Reference (the "how")</span>
+├── <span class="important">QUICK_REFERENCE.md</span> <span class="note"># Cheat sheet</span>
+├── <span class="file">SPEC_TEMPLATE.md</span>   <span class="note"># Spec template</span>
+│
+├── <span class="dir">specs/</span>             <span class="note"># INPUT: before code</span>
+│   └── <span class="file">[feature].md</span>
+├── <span class="dir">reviews/</span>           <span class="note"># QA: after code</span>
+│   └── <span class="file">[feature].md</span>
+├── <span class="dir">features/</span>          <span class="note"># OUTPUT: after approval</span>
+│   └── <span class="file">[feature].md</span>
+└── <span class="dir">bugs/</span>              <span class="note"># Post-mortems</span>
+    └── <span class="file">BUG-[id].md</span>
+
+<span class="dir">config/</span>                <span class="note"># YAML (reference only)</span>
+<span class="dir">scripts/</span>               <span class="note"># Init, scaffold, upgrade</span>
+<span class="dir">.github/workflows/</span>    <span class="note"># CI/CD pipeline</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 11: DAILY PATTERNS
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="29" data-section="Daily Patterns">
+  <div class="divider-num anim">11</div>
+  <div class="label anim d1">Section Eleven</div>
+  <h1 class="anim d2">Daily Patterns</h1>
+  <p class="subtitle anim d3">How a productive day actually looks</p>
+</div>
+
+<div class="slide center" data-slide="30" data-section="Daily Patterns">
+  <div class="label anim">Typical Session</div>
+  <h2 class="anim d1 mb">A Day in the Life</h2>
+  <div class="terminal anim d2" style="max-width:800px;">
+    <div class="terminal-bar">
+      <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+      <span class="terminal-title">Claude Code Session</span>
+    </div>
+    <div class="terminal-body" style="font-size:.78rem;">
+<span class="out">// Start of day: check where you left off</span>
+<span class="prompt">$</span> <span class="cmd">/status</span>
+<span class="out">No active workflow. Last completed: landing-page (STANDARD, 2h ago)</span>
+
+<span class="out">// Quick morning fixes</span>
+<span class="prompt">$</span> <span class="cmd">/fix</span> <span class="highlight">the footer copyright says 2024</span>
+<span class="ok">&#10003; Fixed. Lint clean. Done.</span>                           <span class="out">// MINIMAL: 30 seconds</span>
+
+<span class="prompt">$</span> <span class="cmd">/vibe fix</span> <span class="highlight">mobile nav doesn't close on link click</span>
+<span class="out">[Proposes LIGHT tier]</span> <span class="ok">&#10003;</span>
+<span class="out">[Writes test, fixes bug, runs verify]</span>
+<span class="ok">&#10003; Fixed. Tests pass. Lint clean.</span>                     <span class="out">// LIGHT: few minutes</span>
+
+<span class="out">// Main feature work</span>
+<span class="prompt">$</span> <span class="cmd">/vibe feature</span> <span class="highlight">add user authentication with email/password</span>
+<span class="out">[Proposes STANDARD tier]</span> <span class="ok">&#10003;</span>
+<span class="out">[Creates spec with 6 ACs...]</span>
+<span class="warn">AWAITING SPEC APPROVAL</span>
+<span class="prompt">$</span> <span class="cmd">approved</span>
+<span class="out">[Creates test plan...]</span>
+<span class="warn">AWAITING TEST PLAN APPROVAL</span>
+<span class="prompt">$</span> <span class="cmd">looks good</span>
+<span class="out">[TDD: RED &rarr; GREEN &rarr; BLUE for each AC...]</span>
+<span class="out">[Review: all gates pass...]</span>
+<span class="warn">FEATURE COMPLETE &mdash; AWAITING APPROVAL</span>
+<span class="prompt">$</span> <span class="cmd">ship it</span>
+<span class="out">[Generates docs, saves to memory]</span>
+
+<span class="out">// Ready to commit</span>
+<span class="prompt">$</span> <span class="cmd">/ship</span>
+<span class="ok">&#10003; Committed: feat(auth): add user authentication with email/password</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 12: TIPS
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="31" data-section="Pro Tips">
+  <div class="divider-num anim">12</div>
+  <div class="label anim d1">Section Twelve</div>
+  <h1 class="anim d2">Pro Tips</h1>
+  <p class="subtitle anim d3">Hard-won lessons for maximum productivity</p>
+</div>
+
+<div class="slide center" data-slide="32" data-section="Pro Tips">
+  <div class="label anim">Dos</div>
+  <h2 class="anim d1 mb">What to Do</h2>
+  <ul class="step-list anim d2">
+    <li><span class="step-num">1</span><span class="step-text"><strong>Be specific in requests.</strong> "Add notification bell with unread count badge and dropdown of last 10" beats "add notifications." More detail = fewer revision cycles.</span></li>
+    <li><span class="step-num">2</span><span class="step-text"><strong>Actually read the spec.</strong> When ACs come back, review them carefully. Catching a misunderstanding here costs nothing. In code, it costs a full TDD cycle.</span></li>
+    <li><span class="step-num">3</span><span class="step-text"><strong>Override tiers when your gut says to.</strong> Auto-detection is good, not perfect. If something feels bigger than LIGHT, append <code>--standard</code>.</span></li>
+    <li><span class="step-num">4</span><span class="step-text"><strong>Add <code>use context7</code> for library work.</strong> Fetches live documentation instead of relying on training data. Essential for Next.js, React, Tailwind, etc.</span></li>
+    <li><span class="step-num">5</span><span class="step-text"><strong>Commit after every feature.</strong> Use <code>/ship</code> after approval. Small, frequent commits beat big merges.</span></li>
+    <li><span class="step-num">6</span><span class="step-text"><strong>Start every session with <code>/status</code>.</strong> Know where you left off. Workflow state persists across sessions.</span></li>
+    <li><span class="step-num">7</span><span class="step-text"><strong>Use <code>/mock-data-doc</code> for backend handoff.</strong> One command generates a complete backend spec from your prototype. Saves days of back-and-forth.</span></li>
+    <li><span class="step-num">8</span><span class="step-text"><strong>Batch related small changes.</strong> Instead of 5 MINIMAL requests, describe them together in one <code>/vibe tweak</code>.</span></li>
+  </ul>
+</div>
+
+<div class="slide center" data-slide="33" data-section="Pro Tips">
+  <div class="label anim">Don'ts</div>
+  <h2 class="anim d1 mb">Common Mistakes</h2>
+  <div class="grid-2 anim d2" style="max-width:950px;">
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Applying STANDARD to a typo</h4>
+      <p class="desc">Use <code>/fix</code> or <code>/vibe tweak</code>. A typo doesn't need a spec, test plan, and review ceremony.</p>
+    </div>
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Skipping spec review</h4>
+      <p class="desc">Just saying "approved" without reading the ACs. 2 minutes here saves hours of rework later.</p>
+    </div>
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Building everything at once</h4>
+      <p class="desc">One feature at a time. Use <code>/worktree</code> only for truly independent parallel work.</p>
+    </div>
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Going straight to production mode</h4>
+      <p class="desc">Always prototype first. Validate with users. Then upgrade when the idea is proven.</p>
+    </div>
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Not committing after features</h4>
+      <p class="desc">Use <code>/ship</code> after approval. Uncommitted work is lost work.</p>
+    </div>
+    <div class="card card-sm card-red">
+      <h4 class="red">&#10007; Fixing bugs without analysis</h4>
+      <p class="desc">Use <code>/bug</code> for root cause analysis. Quick fixes without understanding cause repeat bugs.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 13: BACKEND HANDOFF
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide center" data-slide="34" data-section="Backend Handoff">
+  <div class="label anim">Handoff</div>
+  <h2 class="anim d1 mb">Prototype &rarr; Backend Handoff</h2>
+  <p class="subtitle anim d2 mb">When your prototype is approved, one command generates a complete backend spec.</p>
+  <div class="grid-2 anim d3" style="max-width:950px;">
+    <div>
+      <div class="terminal" style="max-width:100%;">
+        <div class="terminal-bar">
+          <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+          <span class="terminal-title">Claude Code</span>
+        </div>
+        <div class="terminal-body" style="font-size:.75rem;">
+<span class="prompt">$</span> <span class="cmd">/mock-data-doc</span>
+
+<span class="out">Scanning for mock data sources...</span>
+<span class="out">  Found: mocks/, fixtures/, MSW handlers</span>
+<span class="out">  Found: localStorage writes</span>
+<span class="out">  Found: hardcoded arrays in components</span>
+
+<span class="ok">&#10003; Generated docs/MOCKED_DATA_STRUCTURE.md</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h4 class="mb-sm">What the Backend Team Gets</h4>
+      <ul class="check-list">
+        <li><span class="ic green">&#10003;</span> Every mocked entity with TypeScript shape</li>
+        <li><span class="ic green">&#10003;</span> All simulated operations (CRUD)</li>
+        <li><span class="ic green">&#10003;</span> Suggested real API endpoints</li>
+        <li><span class="ic green">&#10003;</span> Entity relationships &amp; foreign keys</li>
+        <li><span class="ic green">&#10003;</span> Implied constraints (unique, enums, required)</li>
+        <li><span class="ic green">&#10003;</span> Prototype-only assumptions to NOT carry forward</li>
+        <li><span class="ic green">&#10003;</span> Handoff checklist</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     SECTION 14: SUMMARY
+     ═══════════════════════════════════════════════════════ -->
+
+<div class="slide divider center" data-slide="35" data-section="Summary">
+  <div class="divider-num anim">13</div>
+  <div class="label anim d1">Final Section</div>
+  <h1 class="anim d2">Summary</h1>
+  <p class="subtitle anim d3">Everything you need to remember</p>
+</div>
+
+<div class="slide center" data-slide="36" data-section="Summary">
+  <div class="label anim">Quick Reference</div>
+  <h2 class="anim d1 mb">The Cheat Sheet</h2>
+  <div class="grid-3 anim d2" style="max-width:1000px;">
+    <div class="card card-sm" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:6px;">&#128203;</div>
+      <h4>Spec It</h4>
+      <p class="desc">Given/When/Then ACs. Approve before code.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;background:var(--bg);text-align:left;padding:8px 12px;line-height:1.7;">
+<span class="kw">/vibe feature</span> add login
+<span class="cm">// review spec &rarr; "approved"</span></div>
+    </div>
+    <div class="card card-sm" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:6px;">&#9881;</div>
+      <h4>Build It</h4>
+      <p class="desc">TDD: Red &rarr; Green &rarr; Blue. Every AC tested.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;background:var(--bg);text-align:left;padding:8px 12px;line-height:1.7;">
+<span class="err">RED</span>   write failing test
+<span class="ok">GREEN</span> minimum code to pass
+<span class="fn">BLUE</span>  refactor safely</div>
+    </div>
+    <div class="card card-sm" style="text-align:center;">
+      <div style="font-size:2rem;margin-bottom:6px;">&#128640;</div>
+      <h4>Ship It</h4>
+      <p class="desc">Quality gates pass. You approve. Docs generated.</p>
+      <div class="codeblock mt-sm" style="font-size:.72rem;background:var(--bg);text-align:left;padding:8px 12px;line-height:1.7;">
+<span class="cm">// review results</span>
+<span class="ok">"ship it"</span>
+<span class="kw">/ship</span> <span class="cm">// commit + PR</span></div>
+    </div>
+  </div>
+  <div class="grid-2 mt anim d3" style="max-width:1000px;">
+    <div class="card card-sm" style="border-color:var(--green-border);">
+      <h4 class="green">ALWAYS</h4>
+      <ul class="check-list" style="font-size:.82rem;">
+        <li><span class="ic green">&#10003;</span> Match tier to change size</li>
+        <li><span class="ic green">&#10003;</span> Tests before code (LIGHT+)</li>
+        <li><span class="ic green">&#10003;</span> Spec before code (STANDARD+)</li>
+        <li><span class="ic green">&#10003;</span> Approve at every phase gate</li>
+        <li><span class="ic green">&#10003;</span> Add <code style="font-size:.75rem;">use context7</code> for library work</li>
+        <li><span class="ic green">&#10003;</span> Start with <code style="font-size:.75rem;">/status</code></li>
+      </ul>
+    </div>
+    <div class="card card-sm" style="border-color:var(--red-border);">
+      <h4 class="red">NEVER</h4>
+      <ul class="check-list" style="font-size:.82rem;">
+        <li><span class="ic red">&#10007;</span> Commit without user instruction</li>
+        <li><span class="ic red">&#10007;</span> Skip quality gates for active tier</li>
+        <li><span class="ic red">&#10007;</span> FULL ceremony for a typo</li>
+        <li><span class="ic red">&#10007;</span> MINIMAL ceremony for a feature</li>
+        <li><span class="ic red">&#10007;</span> Fix bugs without root cause analysis</li>
+        <li><span class="ic red">&#10007;</span> Force push or reset --hard</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="slide center" data-slide="37" data-section="Summary">
+  <div class="glow" style="top:-150px;left:50%;transform:translateX(-50%);"></div>
+  <div class="label anim">Get Started</div>
+  <h2 class="anim d1">Build the Right Thing.<br>Know It Works.<br>Ship It Confidently.</h2>
+  <div class="terminal mt anim d2" style="max-width:550px;">
+    <div class="terminal-bar">
+      <div class="terminal-dot r"></div><div class="terminal-dot y"></div><div class="terminal-dot g"></div>
+      <span class="terminal-title">Your first command</span>
+    </div>
+    <div class="terminal-body" style="font-size:1rem;text-align:center;">
+<span class="cmd">/vibe feature</span> <span class="highlight">your-next-great-idea</span>
+    </div>
+  </div>
+  <div class="mt anim d3" style="text-align:center;">
+    <p class="dim sm">
+      Docs: <code style="font-size:.75rem;">METHODOLOGY.md</code> &bull; <code style="font-size:.75rem;">WORKFLOW_RULES.md</code> &bull; <code style="font-size:.75rem;">QUICK_REFERENCE.md</code>
+    </p>
+    <p class="dim xs mt-sm">Vibecoding Workflow v2.0 &mdash; Adaptive Spec-Driven Development</p>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ═══════ NAVIGATION ═══════ -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-progress" id="nav-progress"></div>
+    <span class="nav-section" id="nav-section"></span>
+  </div>
+  <div class="nav-right">
+    <span class="nav-keys">&#8592; &#8594;</span>
+    <button class="nav-btn" onclick="prev()" id="btn-prev">&#8592; Prev</button>
+    <span class="nav-counter" id="counter"></span>
+    <button class="nav-btn" onclick="next()" id="btn-next">Next &#8594;</button>
+  </div>
+</nav>
+
+<script>
+const slides=document.querySelectorAll('.slide'),total=slides.length;
+let current=0;const visited=new Set([0]);
+
+// Section data
+const sections=[];
+slides.forEach((s,i)=>{sections[i]=s.dataset.section||'';});
+
+// Build dots
+const navP=document.getElementById('nav-progress');
+let prevSection='';
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='nav-dot'+(i===0?' active':'');
+  if(sections[i]!==prevSection&&i>0)d.classList.add('section-start');
+  d.dataset.index=i;
+  d.addEventListener('click',()=>goTo(i));
+  navP.appendChild(d);
+  prevSection=sections[i];
+}
+
+function updateNav(){
+  document.getElementById('counter').textContent=(current+1)+' / '+total;
+  document.getElementById('nav-section').textContent=sections[current]||'';
+  document.querySelectorAll('.nav-dot').forEach((d,i)=>{
+    d.className='nav-dot';
+    if(sections[i]!==sections[i-1]&&i>0)d.classList.add('section-start');
+    if(i===current)d.classList.add('active');
+    else if(visited.has(i))d.classList.add('visited');
+  });
+}
+
+function goTo(idx){
+  if(idx<0||idx>=total||idx===current)return;
+  const dir=idx>current?1:-1;
+  // Exit current
+  slides[current].classList.remove('active');
+  slides[current].style.opacity='0';
+  slides[current].style.transform='translateX('+(dir>0?-40:40)+'px)';
+  // Reset anims on old slide
+  slides[current].querySelectorAll('.anim').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(18px)';});
+
+  current=idx;visited.add(current);
+
+  // Prep new slide
+  slides[current].style.transform='translateX('+(dir>0?40:-40)+'px)';
+  slides[current].style.opacity='0';
+
+  // Reset anims
+  slides[current].querySelectorAll('.anim').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(18px)';});
+
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    slides[current].classList.add('active');
+    slides[current].style.transform='translateX(0)';
+    slides[current].style.opacity='1';
+    // Trigger anims
+    slides[current].querySelectorAll('.anim').forEach(el=>{el.style.opacity='';el.style.transform='';});
+  });});
+
+  updateNav();
+}
+
+function next(){goTo(current+1);}
+function prev(){goTo(current-1);}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}
+  if(e.key==='ArrowLeft'){e.preventDefault();prev();}
+  if(e.key==='Home'){e.preventDefault();goTo(0);}
+  if(e.key==='End'){e.preventDefault();goTo(total-1);}
+});
+
+// Touch
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>50){dx<0?next():prev();}});
+
+updateNav();
+</script>
+</body>
+</html>
