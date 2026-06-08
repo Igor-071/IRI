@@ -663,7 +663,7 @@ Quality gates 1, 2, and 9 (lint, tests, build) run automatically via GitHub Acti
 - Cross-browser (Gate 8) — requires multiple browsers
 - Security (Gate 10) — requires code analysis
 
-The CI pipeline uses `|| echo "..."` fallbacks for scripts that may not exist yet (e.g., in a fresh project). Remove the fallbacks once your project has the commands configured.
+The CI pipeline detects which npm scripts exist in `package.json` before running each step. If a script is missing, that step is **skipped** (not silently passed). This means a fresh project with no scripts configured will skip all gates rather than falsely reporting green. Once your project has the scripts, the detection is a no-op and every step runs normally.
 
 ---
 
@@ -678,6 +678,82 @@ State is tracked in `.vibe/state.json` (gitignored). Every skill reads and updat
 - **On completion:** Move to history, clear active workflow
 
 Use `/status` to see current state at any time.
+
+### `.vibe/state.json` Schema
+
+```json
+{
+  "version": "2.0",
+  "active": {
+    "feature": "user-authentication",
+    "tier": "STANDARD",
+    "phase": "implement",
+    "startedAt": "2025-01-15T10:30:00Z",
+    "updatedAt": "2025-01-15T14:22:00Z",
+    "spec": "docs/specs/user-authentication.md",
+    "acceptanceCriteria": {
+      "AC-001": { "status": "passed", "testFile": "src/__tests__/login.test.ts" },
+      "AC-002": { "status": "in-progress", "testFile": null },
+      "AC-003": { "status": "pending", "testFile": null }
+    },
+    "gates": {
+      "lint": "passed",
+      "tests": "passed",
+      "acs_met": "pending",
+      "responsive": "pending",
+      "code_review": "pending",
+      "performance": "skipped",
+      "accessibility": "skipped",
+      "cross_browser": "skipped",
+      "build": "skipped",
+      "security": "skipped",
+      "visual": "skipped"
+    },
+    "notes": "Working on AC-002, login error handling"
+  },
+  "history": [
+    {
+      "feature": "landing-page",
+      "tier": "LIGHT",
+      "result": "completed",
+      "startedAt": "2025-01-14T09:00:00Z",
+      "completedAt": "2025-01-14T11:30:00Z",
+      "gates": { "lint": "passed", "tests": "passed" }
+    }
+  ]
+}
+```
+
+### Field Reference
+
+| Field | Type | Values | Description |
+|-------|------|--------|-------------|
+| `version` | string | `"2.0"` | Schema version |
+| `active` | object \| null | — | Current workflow (null if idle) |
+| `active.feature` | string | — | Feature name (matches spec filename) |
+| `active.tier` | string | `MINIMAL` \| `LIGHT` \| `STANDARD` \| `FULL` \| `EMERGENCY` | Active tier |
+| `active.phase` | string | `spec` \| `test-plan` \| `implement` \| `review` \| `present` \| `done` | Current phase |
+| `active.startedAt` | string | ISO 8601 | When workflow began |
+| `active.updatedAt` | string | ISO 8601 | Last state change |
+| `active.spec` | string \| null | — | Path to spec file (STANDARD+ only) |
+| `active.acceptanceCriteria` | object | — | Map of AC ID → status object |
+| `active.acceptanceCriteria[id].status` | string | `pending` \| `in-progress` \| `passed` \| `failed` | AC status |
+| `active.acceptanceCriteria[id].testFile` | string \| null | — | Path to test file (null until written) |
+| `active.gates` | object | — | Map of gate name → result |
+| `active.gates[name]` | string | `pending` \| `passed` \| `failed` \| `skipped` | Gate result |
+| `active.notes` | string | — | Free-text progress notes |
+| `history` | array | — | Completed workflows (most recent first) |
+| `history[].result` | string | `completed` \| `aborted` | How the workflow ended |
+
+### Rules
+
+- Create `.vibe/` directory and `state.json` on first workflow if they don't exist
+- MINIMAL tier: set `active` with feature/tier/phase only (no ACs or gates beyond lint)
+- LIGHT tier: track feature/tier/phase + lint and test gates
+- STANDARD/FULL: track all fields
+- On completion: move `active` to front of `history`, set `active` to `null`
+- On abort: move to history with `"result": "aborted"`
+- Keep history capped at 20 entries (drop oldest)
 
 ---
 

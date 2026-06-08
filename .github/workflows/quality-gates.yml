@@ -5,9 +5,9 @@
 # Manual gates (responsive, performance, accessibility, visual) are
 # verified during /review.
 #
-# Customize the steps below for your tech stack. The workflow is designed
-# to gracefully handle missing scripts (|| true) — remove those fallbacks
-# once your project has the commands configured.
+# Steps check whether the script exists in package.json before running.
+# If a script is missing, the step is skipped (not silently passed).
+# Once your project has all scripts configured, the guards are a no-op.
 
 name: Quality Gates
 
@@ -37,24 +37,49 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Check available scripts
+        id: scripts
+        run: |
+          if [ ! -f package.json ]; then
+            echo "No package.json found — skipping all gates"
+            echo "has_pkg=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "has_pkg=true" >> "$GITHUB_OUTPUT"
+          # Detect which npm scripts exist
+          node -e "
+            const pkg = require('./package.json');
+            const scripts = pkg.scripts || {};
+            const has = (name) => scripts[name] ? 'true' : 'false';
+            console.log('has_lint=' + has('lint'));
+            console.log('has_typecheck=' + has('typecheck'));
+            console.log('has_test=' + has('test'));
+            console.log('has_build=' + has('build'));
+          " >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
-        run: npm ci || echo "npm ci failed — check package-lock.json exists"
+        if: steps.scripts.outputs.has_pkg == 'true'
+        run: npm ci
 
       # Gate 1: Lint
       - name: Lint
-        run: npm run lint || echo "No lint script found — skipping"
+        if: steps.scripts.outputs.has_lint == 'true'
+        run: npm run lint
 
       # Gate 1b: Type check
       - name: Type check
-        run: npm run typecheck || echo "No typecheck script found — skipping"
+        if: steps.scripts.outputs.has_typecheck == 'true'
+        run: npm run typecheck
 
       # Gate 2: Tests
       - name: Run tests
-        run: npm run test -- --passWithNoTests || echo "No test script found — skipping"
+        if: steps.scripts.outputs.has_test == 'true'
+        run: npm run test -- --passWithNoTests
 
       # Gate 9: Build
       - name: Build
-        run: npm run build || echo "No build script found — skipping"
+        if: steps.scripts.outputs.has_build == 'true'
+        run: npm run build
 
   # ===== React Native / pnpm Projects =====
   # Uncomment this job if using pnpm (e.g., MOP React Native foundation):
