@@ -129,6 +129,30 @@ Pulls the latest [MOP React Native foundation](https://github.com/ministryofprog
 without touching your workflow files. Uses pnpm as its package manager.
 Re-run any time to update.
 
+### Emulator Setup
+
+To run the app on iOS and Android emulators:
+
+**iOS (macOS only):**
+1. Install Xcode (Mac App Store) + Command Line Tools (`xcode-select --install`)
+2. Open Xcode once to accept license and install simulator
+3. `pnpm ios`
+
+**Android:**
+1. Install [Android Studio](https://developer.android.com/studio) with SDK + Emulator
+2. Create a virtual device (Virtual Device Manager → pick phone → download image)
+3. Set env vars in `~/.zshrc`:
+   ```bash
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/emulator
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   ```
+4. `pnpm android`
+
+**During dev:** `pnpm start` then press `i` (iOS), `a` (Android), or `r` (reload).
+
+See the [main README](../README.md#emulator-setup-ios--android) for full details.
+
 ---
 
 ## Getting Started

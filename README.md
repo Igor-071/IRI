@@ -309,6 +309,47 @@ is merged. Re-run any time to update.
 
 `init-project.sh` offers to scaffold automatically when you select React Native.
 
+#### Emulator Setup (iOS & Android)
+
+To preview the app on simulators/emulators during development:
+
+**iOS Simulator (macOS only):**
+
+1. Install **Xcode** from the Mac App Store
+2. Install Command Line Tools:
+   ```bash
+   xcode-select --install
+   ```
+3. Open Xcode once to accept the license and install components
+4. Install a simulator: Xcode → Settings → Platforms → download an iOS version
+5. Run the app:
+   ```bash
+   pnpm ios
+   ```
+
+**Android Emulator:**
+
+1. Install [Android Studio](https://developer.android.com/studio)
+2. During setup, ensure these are checked:
+   - Android SDK
+   - Android SDK Platform-Tools
+   - Android Emulator
+3. Create a virtual device: Android Studio → Virtual Device Manager → Create Device → pick a phone (e.g. Pixel 8) → download a system image → Finish
+4. Add to your `~/.zshrc` (or `~/.bashrc`):
+   ```bash
+   export ANDROID_HOME=$HOME/Library/Android/sdk
+   export PATH=$PATH:$ANDROID_HOME/emulator
+   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   ```
+   Then run `source ~/.zshrc`.
+5. Run the app:
+   ```bash
+   pnpm android
+   ```
+
+**Dev server shortcuts:** Once `pnpm start` is running, press **`i`** for iOS,
+**`a`** for Android, or **`r`** to reload. Both emulators can run simultaneously.
+
 ---
 
 ### Prototype → Backend Handoff
