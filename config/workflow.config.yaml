@@ -42,7 +42,7 @@ approach: "prototype"                       # prototype | production
 # PROJECT SETTINGS
 # =============================================================================
 project:
-  name: "[PROJECT_NAME]"                    # Your project name
+  name: "Inbound Revenue Intelligence"                    # Your project name
   description: "[PROJECT_DESCRIPTION]"      # Brief description
   type: "web"                               # web | mobile | backend | fullstack | cli
 
@@ -52,7 +52,7 @@ project:
 tech_stack:
   # Frontend (the focus for PROTOTYPE mode)
   frontend:
-    framework: "react"                      # react | vue | svelte | angular | vanilla | null
+    framework: "nextjs"                      # react | vue | svelte | angular | vanilla | null
     language: "typescript"                  # typescript | javascript
     styling: "tailwind"                     # tailwind | css | scss | styled-components
     ui_library: "shadcn-ui"                 # shadcn-ui | material-ui | chakra | null

@@ -1,494 +1,177 @@
-# Vibecoding Workflow Template v2.0
+# MOP Foundation Next.js Project
 
-A structured, AI-assisted development workflow that adapts ceremony to complexity.
+A modern, well-structured Next.js application using the App Router, following atomic design principles and best practices for component organization.
 
-## What is Vibecoding?
+## 🏗 Architecture Overview
 
-Vibecoding is an **Adaptive Spec-Driven Development** methodology designed for AI-assisted development. It combines:
+This project is built with a focus on maintainability, scalability, and developer experience, utilizing Next.js 14+ with the new App Router architecture.
 
-- **Adaptive Tier System** - Right-sized ceremony for every change (MINIMAL → FULL)
-- **Spec-First Development** - Detailed specifications before code (STANDARD+ tiers)
-- **BDD-style Acceptance Criteria** - Given/When/Then format for precision
-- **Test-Driven Development** - Red-Green-Blue cycle for quality
-- **Quality Gates** - 1-10 gates depending on tier and mode
-- **Stop & Wait Protocol** - Human remains in control
-- **Workflow State Persistence** - Pause, resume, and track across sessions
-- **Memory Integration** - Learns from past sessions
-
-## Quick Start
-
-### 1. Clone this template
-
-```bash
-git clone https://github.com/Igor-071/vibecoding-workflow-iggy.git my-project
-cd my-project
-```
-
-### 2. Run the initialization script
-
-```bash
-./scripts/init-project.sh
-```
-
-This will:
-- Configure the project name and type
-- Set up the tech stack
-- Enable/disable relevant quality gates
-- Prepare the CI workflow
-
-### 3a. Scaffold Next.js (if using Next.js)
-
-```bash
-./scripts/add-mop-foundation.sh
-npm install
-npm run dev
-```
-
-This pulls the latest [MOP Next.js foundation](https://github.com/ministryofprogramming/mop-foundation-nextjs)
-into your project. Your workflow files (CLAUDE.md, .claude/, docs/, scripts/)
-are never touched. Re-run any time to pull foundation updates.
-
-> `init-project.sh` will offer this automatically when you select Next.js.
-
-### 3b. Scaffold React Native (if using React Native)
-
-```bash
-./scripts/add-mop-foundation-rn.sh
-pnpm install
-pnpm start
-```
-
-This pulls the latest [MOP React Native foundation](https://github.com/ministryofprogramming/mop-foundation-react-native)
-into your project. Your workflow files (CLAUDE.md, .claude/, docs/, scripts/)
-are never touched. Re-run any time to pull foundation updates.
-
-> `init-project.sh` will offer this automatically when you select React Native.
-
-### 4. Start coding with Claude
-
-Open the project in your IDE with Claude Code and start:
+### 📁 Project Structure
 
 ```
-/getting-started       # First time? Interactive walkthrough
-/vibe fix the typo     # Quick fix (MINIMAL tier)
-/vibe add login page   # New feature (STANDARD tier)
-/status                # Check workflow state
+src/
+├── app/                 # App Router pages and layouts
+├── components/         
+│   ├── ui/             # UI components following atomic design
+│   │   ├── atoms/      # Basic UI elements
+│   │   ├── molecules/  # Composite components
+│   │   └── organisms/ # Large UI sections
+│   └── views/          # Page-specific view components
+├── lib/                # Shared utilities and business logic
+└── providers/          # Global state and context providers
 ```
 
-The workflow auto-detects the right tier for your change. See [Commands](#commands) below.
+### 🧱 Key Architectural Decisions
 
-### 5. Upgrade to Production (when ready)
+1. **App Router**: Using Next.js App Router (`/src/app`) for modern routing and layouts
+2. **Atomic Design**: UI components are organized following atomic design principles
+3. **Global State**: Centralized state management via Context API
+4. **Type Safety**: Full TypeScript implementation
+5. **Styling**: Tailwind CSS + shadcn/ui for consistent, accessible UI
 
-When your prototype is validated and you're ready for production:
+## 🔍 Component Architecture
 
-```bash
-./scripts/upgrade-to-production.sh
-```
+### Atomic Design Implementation
 
-This will:
-- Switch from 5 to 10 quality gates
-- Optionally set up backend and database
-- Create a transition checklist
+1. **Atoms** (`/src/components/ui/atoms/`)
+   - Fundamental UI building blocks
+   - Examples: buttons, inputs, labels
+   - Stateless and reusable
+   - Built on top of shadcn/ui primitives
 
-## Adding to Existing Projects
+2. **Molecules** (`/src/components/ui/molecules/`)
+   - Combinations of atoms
+   - Contains business logic and state
+   - Examples: forms, interactive components
+   - Mix of client and server components
 
-Already have a project? You can adopt this workflow without starting over.
+3. **Organisms** (`/src/components/ui/organisms/`)
+   - Complex UI sections
+   - Composed of multiple molecules and atoms
+   - Page-section level components
 
-### What to Copy
+4. **Views** (`/src/components/views/`)
+   - Page-level components
+   - Organized by route/feature
+   - Maps 1:1 with App Router pages
 
-```bash
-# Copy workflow files to your existing project
-cp -r config/ your-project/
-cp -r docs/ your-project/
-cp -r .github/ your-project/
-cp CLAUDE.md your-project/
-```
+## 🛠 Technical Stack
 
-### Customize for Your Project
+- **Framework**: Next.js 14+
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **State Management**: React Context API
+- **Font Loading**: next/font with Geist font
 
-1. Edit `config/workflow.config.yaml` - Set your tech stack and project type
-2. Edit `CLAUDE.md` - Update with your project's build/test commands
-3. Review `.github/` templates - Adjust to match your workflow
+## 📂 Directory Structure Details
 
-### Adoption Strategy: New Features First
+### `/src/app`
+- Root layout and global styles
+- Page routes and layouts
+- API routes (when needed)
 
-**Don't retrofit everything.** Instead:
+### `/src/components`
+- **UI Components** (`/ui`)
+  - Atomic design structure
+  - Reusable component library
+- **View Components** (`/views`)
+  - Page-specific components
+  - Organized by feature/route
 
-- **New features** → Full workflow (spec → tests → implementation → review)
-- **Bug fixes in old code** → Add spec + regression test for the fix only
-- **Major changes to old code** → Write spec for the changed parts
+### `/src/lib`
+- `actions.ts`: Business logic and data operations
+- `schemas.ts`: Data validation schemas
+- `utils.ts`: Shared utility functions
 
-This lets you prove the workflow's value before asking for full codebase adoption. Over time, more code gets covered naturally.
+### `/src/providers`
+- `global-state-provider.tsx`: Application-wide state management
+- Additional context providers as needed
 
-See [METHODOLOGY.md](docs/METHODOLOGY.md) for the philosophy behind this approach.
+## 🚀 Getting Started
 
-## Repository Structure
-
-```
-.
-├── CLAUDE.md                    # Single source of truth (Claude reads this)
-├── README.md                    # You are here
-├── LICENSE
-├── .gitignore
-│
-├── config/                      # Reference configs (YAML, not authoritative)
-│   ├── workflow.config.yaml     # Project settings reference
-│   ├── personas.yaml            # AI persona reference
-│   ├── tiers.yaml               # Tier definitions reference
-│   ├── commands.yaml            # Command definitions reference
-│   ├── detection.yaml           # Auto-detection rules reference
-│   └── gates.yaml               # Quality gates reference
-│
-├── docs/
-│   ├── README.md                # Documentation hub
-│   ├── METHODOLOGY.md           # Philosophy & principles
-│   ├── WORKFLOW_RULES.md        # Complete workflow reference
-│   ├── QUICK_REFERENCE.md       # Daily cheat sheet
-│   ├── SPEC_TEMPLATE.md         # Feature specification template
-│   ├── IMPLEMENTATION_PLAN.md   # v2.0 implementation plan
-│   ├── specs/                   # Feature specifications
-│   ├── reviews/                 # Quality reviews
-│   ├── features/                # Feature documentation
-│   └── bugs/                    # Bug post-mortems
-│
-├── .github/
-│   ├── ISSUE_TEMPLATE/          # Issue templates
-│   ├── PULL_REQUEST_TEMPLATE.md # PR template
-│   └── workflows/
-│       └── quality-gates.yml    # CI pipeline (lint, tests, build)
-│
-├── .claude/
-│   ├── settings.json            # Hooks (auto-lint + pre-commit)
-│   └── skills/                  # Slash commands
-│       ├── vibe/                # /vibe — Master router (auto-detect tier)
-│       ├── fix/                 # /fix — Quick fix shortcut
-│       ├── status/              # /status — Workflow state display
-│       ├── getting-started/     # /getting-started — Interactive onboarding
-│       ├── worktree/            # /worktree — Parallel workflows
-│       ├── spec/                # /spec — Specification writing
-│       ├── test-plan/           # /test-plan — Test matrix planning
-│       ├── implement/           # /implement — TDD implementation
-│       ├── review/              # /review — Quality gates
-│       ├── ship/                # /ship — Commit + PR
-│       ├── bug/                 # /bug — Bug analysis
-│       └── mock-data-doc/       # /mock-data-doc — Backend handoff
-│
-├── .vibe/                       # Workflow state (gitignored)
-│   └── state.json               # Current workflow state
-│
-└── scripts/
-    ├── init-project.sh          # Project initialization
-    ├── add-mop-foundation.sh    # Pull MOP Next.js foundation
-    ├── add-mop-foundation-rn.sh # Pull MOP React Native foundation
-    └── upgrade-to-production.sh # Prototype → Production upgrade
-```
-
-## Development Workflow
-
-### Phase 1: Specification
-
-```
-User: "Add user authentication"
-     ↓
-AI: Creates docs/specs/user-authentication.md
-     ↓
-AI: Presents spec with Given/When/Then criteria
-     ↓
-User: "Spec approved"
-```
-
-### Phase 2: Test Planning
-
-```
-User: "Spec approved"
-     ↓
-AI (/test-plan): Produces test matrix per AC — level, file, fixtures, edge cases
-     ↓
-User: approves test plan
-```
-
-### Phase 3: Implementation
-
-```
-AI (/implement): TDD cycle (Red → Green → Blue)
-     ↓
-AI: Updates traceability matrix
-```
-
-### Phase 4: Review
-
-```
-AI: Runs all 10 quality gates
-     ↓
-AI: Creates docs/reviews/user-authentication.md
-     ↓
-AI: All gates must pass GREEN
-```
-
-### Phase 5: User Testing
-
-```
-AI: Presents completed feature
-     ↓
-AI: STOPS and WAITS for approval
-     ↓
-User: "Approved"
-     ↓
-AI: Auto-generates docs/features/user-authentication.md
-     ↓
-User: "Commit" (when ready)
-```
-
-## Commands
-
-### Primary (v2.0)
-
-| Command | What it does |
-|---------|--------------|
-| `/vibe <description>` | **Auto-detect tier and execute** — the main entry point |
-| `/vibe fix <desc>` | Bug fix (LIGHT tier) |
-| `/vibe tweak <desc>` | Small change (MINIMAL tier) |
-| `/vibe feature <desc>` | New feature (STANDARD tier) |
-| `/vibe epic <desc>` | Major feature (FULL tier) |
-| `/vibe hotfix <desc>` | Production fire (EMERGENCY tier) |
-| `/fix <description>` | Quick fix shortcut (MINIMAL/LIGHT) |
-| `/status` | Show current workflow state |
-| `/getting-started` | Interactive onboarding for new users |
-| `/worktree start <name>` | Start parallel feature development |
-
-### Standard Workflow Skills
-
-| Command | Phase | What it does |
-|---------|-------|--------------|
-| `/spec` | 1 — Specification | Creates spec in `docs/specs/` with Given/When/Then ACs |
-| `/test-plan` | 2 — Test Planning | Produces test matrix appended to the spec file |
-| `/implement` | 3 — Implementation | TDD cycle: Red → Green → Blue |
-| `/review` | 4 — Review | Runs quality gates, visual verification, reports pass/fail |
-| `/ship` | 5 — Ship | Creates commit + PR with conventional commit message |
-| `/bug` | Any | Root cause analysis (5 Whys) + regression test |
-| `/mock-data-doc` | Handoff | Generates `docs/MOCKED_DATA_STRUCTURE.md` for backend team |
-
-Skills live in `.claude/skills/[name]/SKILL.md`.
-
----
-
-### Given/When/Then Acceptance Criteria
-
-```gherkin
-### AC-001: Successful login
-
-GIVEN a registered user on the login page
-WHEN they enter valid email and password
-AND click "Sign In"
-THEN they are redirected to dashboard
-AND see welcome message with their name
-```
-
-### Spec-to-Test Traceability
-
-| Criterion | Test File | Test Name | Status |
-|-----------|-----------|-----------|--------|
-| AC-001 | `login.test.ts` | `should redirect on valid login` | ✅ |
-| AC-002 | `login.test.ts` | `should show error on invalid password` | ✅ |
-
-### 10 Quality Gates
-
-**Prototype Mode (5 essential):**
-1. **Tests pass** — `npm run test`, 0 failures
-2. **Lint clean** — `npm run lint`, 0 warnings
-3. **All ACs met** — every AC has a passing test
-4. **Responsive** — 320px → 1440px
-5. **Code review** — diff reviewed, no dead code / boundary issues
-
-**Production Mode (adds 5):**
-6. **Performance** — Lighthouse > 90
-7. **Accessibility** — WCAG 2.1 AA
-8. **Cross-browser** — Chrome, Safari, Firefox
-9. **Build succeeds** — `npm run build`, 0 errors
-10. **Security scan** — no XSS, injection, or exposed secrets
-
-Authoritative definition: `.claude/skills/review/SKILL.md`.
-
-### MOP Next.js Foundation
-
-New Next.js projects pull the latest starter from
-[`ministryofprogramming/mop-foundation-nextjs`](https://github.com/ministryofprogramming/mop-foundation-nextjs)
-via `degit` — not a copy, always the latest:
-
-```bash
-./scripts/add-mop-foundation.sh         # pull latest main
-./scripts/add-mop-foundation.sh v1.2.0  # pin to a specific release
-```
-
-Your workflow files (CLAUDE.md, .claude/, config/, docs/, scripts/) are
-preserved. Foundation files are overlaid. `.gitignore` is merged. Re-run any
-time to update.
-
-`init-project.sh` offers to scaffold automatically when you select Next.js.
-
-### MOP React Native Foundation
-
-New React Native projects pull the latest starter from
-[`ministryofprogramming/mop-foundation-react-native`](https://github.com/ministryofprogramming/mop-foundation-react-native)
-via `degit` — same pull-not-copy approach as the Next.js foundation:
-
-```bash
-./scripts/add-mop-foundation-rn.sh         # pull latest main
-./scripts/add-mop-foundation-rn.sh v1.2.0  # pin to a specific release
-```
-
-**Stack:** Expo SDK 56, React Native 0.85, React 19, TypeScript 6, Expo Router,
-TanStack Query, Zustand, react-hook-form + Zod, atomic design, EAS Build.
-
-**Package manager:** pnpm (not npm). Use `pnpm install`, `pnpm start`, etc.
-
-Your workflow files are preserved. Foundation files are overlaid. `.gitignore`
-is merged. Re-run any time to update.
-
-`init-project.sh` offers to scaffold automatically when you select React Native.
-
-#### Emulator Setup (iOS & Android)
-
-To preview the app on simulators/emulators during development:
-
-**iOS Simulator (macOS only):**
-
-1. Install **Xcode** from the Mac App Store
-2. Install Command Line Tools:
+1. **Clone and Install**
    ```bash
-   xcode-select --install
-   ```
-3. Open Xcode once to accept the license and install components
-4. Install a simulator: Xcode → Settings → Platforms → download an iOS version
-5. Run the app:
-   ```bash
-   pnpm ios
+   git clone https://github.com/ministryofprogramming/mop-foundation-nextjs.git
+   cd mop-foundation-nextjs
+   npm install
    ```
 
-**Android Emulator:**
-
-1. Install [Android Studio](https://developer.android.com/studio)
-2. During setup, ensure these are checked:
-   - Android SDK
-   - Android SDK Platform-Tools
-   - Android Emulator
-3. Create a virtual device: Android Studio → Virtual Device Manager → Create Device → pick a phone (e.g. Pixel 8) → download a system image → Finish
-4. Add to your `~/.zshrc` (or `~/.bashrc`):
+2. **Development**
    ```bash
-   export ANDROID_HOME=$HOME/Library/Android/sdk
-   export PATH=$PATH:$ANDROID_HOME/emulator
-   export PATH=$PATH:$ANDROID_HOME/platform-tools
+   npm run dev
    ```
-   Then run `source ~/.zshrc`.
-5. Run the app:
-   ```bash
-   pnpm android
-   ```
+   Open [http://localhost:3000](http://localhost:3000)
 
-**Dev server shortcuts:** Once `pnpm start` is running, press **`i`** for iOS,
-**`a`** for Android, or **`r`** to reload. Both emulators can run simultaneously.
+## 🔧 Development Practices
 
----
+1. **Component Creation**
+   - Place UI components in appropriate atomic design folders
+   - Follow naming conventions for consistency
+   - Include TypeScript types and documentation
 
-### Prototype → Backend Handoff
+2. **State Management**
+   - Use global state for app-wide state
+   - Prefer local state for component-specific state
+   - Implement context providers as needed
 
-When a prototype is approved and real backend work begins, run:
+3. **Styling**
+   - Use Tailwind CSS utility classes
+   - Extend shadcn/ui components when needed
+   - Maintain consistent design tokens
 
-```
-/mock-data-doc
-```
+## 📚 Best Practices
 
-or say **"generate mock data doc"** in Claude Code.
+1. **Code Organization**
+   - Follow atomic design principles strictly
+   - Keep components focused and single-responsibility
+   - Use TypeScript for type safety
 
-Claude scans the entire codebase for mock data — `mocks/`, `fixtures/`, MSW
-handlers, hardcoded arrays, `localStorage` writes — and writes
-`docs/MOCKED_DATA_STRUCTURE.md`. The document covers:
+2. **Performance**
+   - Implement proper code splitting
+   - Use Next.js image optimization
+   - Optimize for Core Web Vitals
 
-- Every mocked entity with TypeScript shape and real example values
-- All simulated operations (list, get, create, update, delete) with suggested real endpoints
-- Relationships between entities (foreign keys, nested refs)
-- Implied constraints (unique fields, enums, required fields)
-- Prototype-only assumptions the backend must **not** carry forward (hardcoded admins, no auth, no pagination)
-- Handoff checklist for the backend team
+3. **Accessibility**
+   - Utilize shadcn/ui's accessible components
+   - Follow WCAG guidelines
+   - Implement proper ARIA attributes
 
-Commit the file to `docs/` so the backend team has it alongside the code.
+## 🔄 Project Conventions
 
----
+1. **Imports**
+   - Use `@/` alias for imports from `/src`
+   - Group imports logically
+   - Maintain consistent import ordering
 
-### Bug Post-Mortems with 5 Whys
+2. **Component Structure**
+   - One component per file
+   - Clear component responsibilities
+   - Proper TypeScript interfaces
 
-```
-1. Why? → Session token not stored
-2. Why? → localStorage call failed silently
-3. Why? → localStorage undefined in SSR
-4. Why? → Component rendered server-side
-5. Why? → Missing "use client" directive
+3. **File Naming**
+   - Kebab-case for files
+   - PascalCase for components
+   - Descriptive, purpose-indicating names
 
-Root Cause: Component needs "use client" directive
-```
+## 🚀 Deployment
 
-## Configuration
+Deploy on [Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) for optimal Next.js performance and features.
 
-### workflow.config.yaml
+## 📖 Documentation Resources
 
-```yaml
-project:
-  name: "My Project"
-  type: "web"  # web | mobile | backend | fullstack | cli
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [shadcn/ui Documentation](https://ui.shadcn.com)
 
-tech_stack:
-  frontend:
-    framework: "react"
-    language: "typescript"
-  testing:
-    unit: "vitest"
+## 🤝 Contributing
 
-quality_gates:
-  mobile_responsive:
-    enabled: true  # false for CLI/backend
-  accessibility:
-    enabled: true  # false for CLI/backend
-```
+1. Follow the existing architecture
+2. Maintain atomic design principles
+3. Include proper TypeScript types
+4. Write clear commit messages
+5. Update documentation as needed
 
-> **Note:** `workflow.config.yaml` is **documentation only** — Claude does not
-> read YAML. The authoritative configuration is `CLAUDE.md` (mode, quality gates)
-> and `.claude/settings.json` (hooks).
+## 📝 License
 
-### Conventional Commits
-
-```bash
-feat(auth): add user login with email/password
-fix(auth): prevent session expiry on refresh
-spec(auth): add login feature specification
-test(auth): add acceptance tests for login
-docs(auth): add login feature documentation
-```
-
-## Documentation
-
-| Document | Purpose |
-|----------|---------|
-| [METHODOLOGY.md](docs/METHODOLOGY.md) | Core philosophy (the "why") |
-| [WORKFLOW_RULES.md](docs/WORKFLOW_RULES.md) | Complete reference (the "how") |
-| [QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) | Daily cheat sheet |
-| [SPEC_TEMPLATE.md](docs/SPEC_TEMPLATE.md) | Feature spec template |
-
-## Critical Rules
-
-**NEVER:**
-- Apply FULL ceremony to a typo (use MINIMAL)
-- Apply MINIMAL ceremony to a feature (use STANDARD+)
-- Commit or push without user instruction
-- Skip quality gates for the active tier
-- Force push, reset --hard, or clean -f
-
-**ALWAYS:**
-- Match ceremony to complexity (right tier)
-- Tests before code (LIGHT+ tiers)
-- Spec before code (STANDARD+ tiers)
-- Stop & Wait for approval at phase gates
-- Use `use context7` with framework/library APIs
-
-## License
-
-MIT License - See [LICENSE](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.

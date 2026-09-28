@@ -4,10 +4,12 @@ This file is the **single source of truth** for how Claude Code works on this pr
 
 ## Project Overview
 
-**Project:** [PROJECT_NAME]
-**Approach:** [APPROACH]  <!-- prototype | production -->
-**Type:** [web | mobile | backend | fullstack | cli]
-**Stack:** [TECH_STACK]
+**Project:** Inbound Revenue Intelligence
+**Approach:** prototype  <!-- prototype | production -->
+**Type:** web
+**Stack:** nextjs
+
+Build a high-fidelity functional Next.js prototype that reconstructs the path from first marketing touch to lead, opportunity, and revenue.
 
 ### If PROTOTYPE mode:
 - Frontend-only, fast iteration, mock data, 5 quality gates
@@ -16,6 +18,124 @@ This file is the **single source of truth** for how Claude Code works on this pr
 ### If PRODUCTION mode:
 - Full-stack, real database/APIs/auth, all 10 quality gates
 - Goal: Ship reliable, production-ready software
+
+---
+
+## Authoritative Documentation
+
+`CLAUDE.md` sits in the repository root. All numbered documents live in the `documentation/` folder.
+
+Read and follow these files before implementation, in this priority order:
+
+1. `documentation/00_DECISIONS.md` — **highest authority** for rules, metric definitions, targets, scope and architecture
+2. `documentation/03_DATA_MODEL_EVENT_TAXONOMY.md` — types, events, attribution logic
+3. `documentation/04_SEED_DATA_SPECIFICATION.md` — canonical records and hero journeys
+4. `documentation/05_DESIGN_SYSTEM.md`
+5. `documentation/06_SCREEN_SPECIFICATIONS.md`
+6. `documentation/07_USER_FLOWS.md`
+7. `documentation/02_PROTOTYPE_REQUIREMENTS.md`
+8. `documentation/01_PRODUCT_BRIEF.md` — intent and positioning only
+9. `documentation/08_CLAUDE_CODE_BUILD_INSTRUCTIONS.md` — build sequencing
+
+Any figure outside `00` and `04` is illustrative. Never seed it; derive displayed values from seed data.
+
+---
+
+## Stack
+
+- Next.js (App Router), TypeScript — pin exact versions at creation
+- Tailwind CSS v4 (tokens in `app/globals.css` via `@theme`)
+- shadcn/ui, Lucide Icons, Recharts
+- Vitest (logic tests), Playwright (demo-path smoke test)
+- Deterministic local TypeScript seed data, generated once by a script and checked in
+
+Do not add a backend, authentication, database, live OAuth, or external integrations unless explicitly requested.
+
+---
+
+## Core Rules
+
+- `NOW = 2026-09-27T12:00:00+02:00`. Never use `Date.now()` in app code. Format dates with fixed locale and time zone.
+- Folders: `components/ui` (shadcn + DataTable) · `components/domain` (entity primitives) · `components/features` · `components/layout`. Dependency direction: `app → features → domain → ui`. Do not wrap shadcn primitives.
+- Use semantic design tokens; never scatter raw MOP hex colors through JSX.
+- Keep business logic in `lib/` as pure functions; never in page or UI components.
+- The Event model is the source of truth for journeys.
+- Touchpoints are a concept but are derived from Session + Event (`deriveTouchpoints`), not stored.
+- Derive attribution, pipeline, revenue, and KPI values from seeded data.
+- Never reduce attribution to one `lead_source`.
+- Keep First Touch, Last Marketing Touch, Conversion Touch, Self-Reported and Relationship attribution separate.
+- Direct is never a marketing touch. No marketing touch → **Unknown**. Direct appears only as a conversion channel.
+- Never invent attribution when data is unknown.
+- An opportunity uses its primary contact's attribution. Account journeys aggregate people; person journeys remain individual.
+- One derived Display Stage per person (see 00 §3.2).
+- Ask Inbound answers are computed by `lib/` functions and show evidence.
+- Keep the UI dark-first, restrained, premium, data-dense, and enterprise-oriented.
+- Avoid gradients, neon effects, glassmorphism, huge rounded cards, and generic AI dashboard styling.
+
+---
+
+## Canonical Demo Records
+
+### Acme Inc
+
+John Smith, VP Product, john.smith@acme.com.
+
+Opportunity: AI Transformation Platform, €120K, Proposal.
+
+- First Touch: Google Organic
+- Last Marketing Touch: LinkedIn Organic
+- Conversion: Direct / Contact Form
+- Self-Reported: LinkedIn content
+- Status: Full
+
+Account also includes Sarah Johnson (CTO, LinkedIn Organic lead) and Michael Brown (CEO, relationship introduction).
+
+### Vector Group
+
+Attribution status: Unknown. First and Last Marketing Touch: Unknown. Conversion channel: Direct.
+
+Do not infer a source.
+
+### Atlas Systems
+
+Detected: no marketing touch (Direct conversion) → Unknown in First/Last Marketing Touch. Status: Partial.
+
+Relationship attribution: Existing Client Referral (Daniel Fischer — Nova Group).
+
+Keep these separate.
+
+---
+
+## Build Order
+
+1. Project setup
+2. Tokens / theme / types / config / constants
+3. Opportunity ledger, hero records, seed generator, validation
+4. Attribution / journey / metric logic + tests
+5. Shared components (ui, domain, layout)
+6. Overview
+7. Leads
+8. Lead Detail
+9. Account Detail, Accounts
+10. Attribution
+11. Integrations
+12. Ask Inbound
+13. Journeys (P2)
+14. QA / polish / Playwright demo path
+
+---
+
+## P0 Demo Path
+
+`Overview → John Smith / Acme → Attribution Summary → Why? → Customer Journey → Acme Account → Attribution (First → Conversion → Last Marketing Touch) → Unknown row → Vector Group → Ask Inbound → Integrations`
+
+This path must work flawlessly.
+
+---
+
+## Definition of Done
+
+The prototype is ready when all P0 flows work, derived data matches the validation targets in `00_DECISIONS.md §14`, hero journeys are correct, navigation/filters/search work, visual rules are consistent, and the full management demo can be run without broken or placeholder states.
 
 ---
 
@@ -364,6 +484,7 @@ When user says "approved", "green light", or "looks good":
 
 - Check `.vibe/state.json` for current workflow state
 - Check `docs/specs/` for the approved spec
+- Check `documentation/00_DECISIONS.md` for authoritative rules and targets
 - Recall from memory: similar past features
 - Run tests to see what's failing
 - Ask the user — don't guess at requirements
@@ -372,6 +493,15 @@ When user says "approved", "green light", or "looks good":
 
 | File | Purpose |
 |------|---------|
+| `documentation/00_DECISIONS.md` | Highest authority — rules, metrics, targets, scope |
+| `documentation/03_DATA_MODEL_EVENT_TAXONOMY.md` | Types, events, attribution logic |
+| `documentation/04_SEED_DATA_SPECIFICATION.md` | Canonical records and hero journeys |
+| `documentation/05_DESIGN_SYSTEM.md` | Design system |
+| `documentation/06_SCREEN_SPECIFICATIONS.md` | Screen specs |
+| `documentation/07_USER_FLOWS.md` | User flows |
+| `documentation/02_PROTOTYPE_REQUIREMENTS.md` | Prototype requirements |
+| `documentation/01_PRODUCT_BRIEF.md` | Intent and positioning |
+| `documentation/08_CLAUDE_CODE_BUILD_INSTRUCTIONS.md` | Build sequencing |
 | `CLAUDE.local.md.example` | Personal preferences template |
 | `.mcp.json` | MCP servers (context7, github, playwright, memory, sequential-thinking) |
 | `.claude/settings.json` | Hooks and permissions |
@@ -436,15 +566,17 @@ pnpm type-check          # TypeScript check
 ## Critical Rules
 
 ### ALWAYS
-1. **ALWAYS** match ceremony to complexity — use the right tier
-2. **ALWAYS** use Given/When/Then for acceptance criteria (STANDARD+ tiers)
-3. **ALWAYS** write failing tests before implementation (LIGHT+ tiers)
-4. **ALWAYS** wait for explicit user approval at phase gates
-5. **ALWAYS** update traceability matrix (STANDARD+ tiers)
-6. **ALWAYS** generate documentation on feature approval (STANDARD+ tiers)
-7. **ALWAYS** use `use context7` when working with any framework or library
-8. **ALWAYS** update `.vibe/state.json` during workflows
-9. **ALWAYS** save lessons to memory after completing workflows
+1. **ALWAYS** read `documentation/00_DECISIONS.md` before any implementation work
+2. **ALWAYS** match ceremony to complexity — use the right tier
+3. **ALWAYS** use Given/When/Then for acceptance criteria (STANDARD+ tiers)
+4. **ALWAYS** write failing tests before implementation (LIGHT+ tiers)
+5. **ALWAYS** wait for explicit user approval at phase gates
+6. **ALWAYS** update traceability matrix (STANDARD+ tiers)
+7. **ALWAYS** generate documentation on feature approval (STANDARD+ tiers)
+8. **ALWAYS** use `use context7` when working with any framework or library
+9. **ALWAYS** update `.vibe/state.json` during workflows
+10. **ALWAYS** save lessons to memory after completing workflows
+11. **ALWAYS** derive displayed values from seed data — never hardcode or invent figures
 
 ### NEVER
 1. **NEVER** commit or push without user instruction
@@ -454,3 +586,6 @@ pnpm type-check          # TypeScript check
 5. **NEVER** apply MINIMAL ceremony to a new feature (use STANDARD+)
 6. **NEVER** guess at requirements — ask the user
 7. **NEVER** force push, reset --hard, or clean -f
+8. **NEVER** use `Date.now()` in app code — use the fixed `NOW` constant
+9. **NEVER** reduce attribution to a single `lead_source`
+10. **NEVER** invent attribution when data is unknown — use Unknown
