@@ -260,6 +260,7 @@ export function getLeads(
     attribution?: AttributionStatus;
     source?: AcquisitionSource;
     stage?: DisplayStage;
+    owner?: string;
   }
 ): Person[] {
   if (!filters) return [...people];
@@ -275,6 +276,10 @@ export function getLeads(
 
     if (filters.attribution) {
       if (getAttributionStatus(person) !== filters.attribution) return false;
+    }
+
+    if (filters.owner && person.ownerId !== filters.owner) {
+      return false;
     }
 
     return true;
