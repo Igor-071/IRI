@@ -1,15 +1,14 @@
 import { PageHeader } from "@/components/layout";
+import { AskInboundContent } from "@/components/features/ask-inbound/ask-inbound-content";
 
 export default function AskInboundPage() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Ask Inbound"
-        subtitle="Query your revenue intelligence."
+        subtitle="Ask questions across attribution, accounts, journeys, pipeline and revenue."
       />
-      <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-        Ask Inbound interface — Phase 12
-      </div>
+      <AskInboundContent />
     </div>
   );
 }
