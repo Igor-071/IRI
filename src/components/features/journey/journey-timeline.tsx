@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import type { Event } from "@/types";
-import { getPersonJourney } from "@/lib/journeys";
+import { getPersonJourney, getAccountJourney } from "@/lib/journeys";
+import { getPersonById } from "@/lib/data/repositories";
 import { eventTypeConfig } from "@/lib/config/event-types";
 import { TIMEZONE, LOCALE } from "@/lib/config/constants";
 import { SourceSystemChip } from "@/components/domain/source-system-chip";
@@ -21,7 +22,8 @@ const categoryAccents: Record<string, string> = {
 };
 
 interface JourneyTimelineProps {
-  personId: string;
+  personId?: string;
+  companyId?: string;
   className?: string;
 }
 
@@ -33,6 +35,7 @@ interface EventGroup {
 interface TimelineEvent {
   event: Event;
   collapsed?: { count: number };
+  actorName?: string;
 }
 
 function formatTimeOnly(timestamp: string): string {
@@ -55,13 +58,14 @@ function formatDayLabel(timestamp: string): string {
     .toUpperCase();
 }
 
-function collapsePageViews(events: Event[]): TimelineEvent[] {
+function collapsePageViews(events: Event[], personNameMap?: Map<string, string>): TimelineEvent[] {
   const result: TimelineEvent[] = [];
   let i = 0;
 
   while (i < events.length) {
     const ev = events[i];
     const config = eventTypeConfig[ev.type];
+    const actorName = personNameMap?.get(ev.personId);
 
     // Collapse consecutive low-importance page_viewed events within same session
     if (ev.type === "page_viewed" && config.importance === "low") {
@@ -80,20 +84,21 @@ function collapsePageViews(events: Event[]): TimelineEvent[] {
         result.push({
           event: ev,
           collapsed: { count },
+          actorName,
         });
         i = j;
         continue;
       }
     }
 
-    result.push({ event: ev });
+    result.push({ event: ev, actorName });
     i++;
   }
 
   return result;
 }
 
-function groupByDate(events: Event[]): EventGroup[] {
+function groupByDate(events: Event[], personNameMap?: Map<string, string>): EventGroup[] {
   const groups: Map<string, Event[]> = new Map();
 
   for (const ev of events) {
@@ -105,15 +110,35 @@ function groupByDate(events: Event[]): EventGroup[] {
 
   return Array.from(groups.entries()).map(([dateLabel, groupEvents]) => ({
     dateLabel,
-    events: collapsePageViews(groupEvents),
+    events: collapsePageViews(groupEvents, personNameMap),
   }));
 }
 
 export function JourneyTimeline({
   personId,
+  companyId,
   className,
 }: JourneyTimelineProps) {
-  const events = useMemo(() => getPersonJourney(personId), [personId]);
+  const isAccountMode = !!companyId;
+
+  const events = useMemo(() => {
+    if (companyId) return getAccountJourney(companyId);
+    if (personId) return getPersonJourney(personId);
+    return [];
+  }, [personId, companyId]);
+
+  // Build person name lookup for account mode
+  const personNameMap = useMemo(() => {
+    if (!isAccountMode) return undefined;
+    const map = new Map<string, string>();
+    for (const ev of events) {
+      if (!map.has(ev.personId)) {
+        const person = getPersonById(ev.personId);
+        if (person) map.set(ev.personId, person.name);
+      }
+    }
+    return map;
+  }, [events, isAccountMode]);
 
   const sourceSystems = useMemo(() => {
     const systems = new Set<string>();
@@ -123,7 +148,7 @@ export function JourneyTimeline({
     return Array.from(systems);
   }, [events]);
 
-  const groups = useMemo(() => groupByDate(events), [events]);
+  const groups = useMemo(() => groupByDate(events, personNameMap), [events, personNameMap]);
 
   if (events.length === 0) {
     return (
@@ -166,6 +191,14 @@ export function JourneyTimeline({
                 const isHigh = config.importance === "high";
                 const isLow = config.importance === "low";
 
+                const description = item.collapsed
+                  ? `${item.collapsed.count} pages viewed`
+                  : ev.description;
+
+                const displayText = item.actorName
+                  ? `${item.actorName} \u2014 ${description}`
+                  : description;
+
                 return (
                   <div
                     key={`${ev.id}-${idx}`}
@@ -198,9 +231,7 @@ export function JourneyTimeline({
                             : "text-muted-foreground"
                         )}
                       >
-                        {item.collapsed
-                          ? `${item.collapsed.count} pages viewed`
-                          : ev.description}
+                        {displayText}
                       </span>
                     </div>
 
