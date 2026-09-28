@@ -1,26 +1,28 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { GlobalStateProvider } from "@/providers/global-state-provider"
+import type React from "react";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "Next.js Server vs Client Showcase",
-  description: "Demonstrating server and client component composition",
-}
+  title: "Inbound Revenue Intelligence",
+  description:
+    "From first touch to revenue — one customer journey.",
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <GlobalStateProvider>{children}</GlobalStateProvider>
-      </body>
+    <html lang="en" className="dark">
+      <body className={`${inter.variable} font-sans`}>{children}</body>
     </html>
-  )
+  );
 }
