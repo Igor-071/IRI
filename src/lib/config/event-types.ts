@@ -47,6 +47,16 @@ export const eventTypeConfig: Record<EventType, EventTypeConfig> = {
     category: "conversion",
     importance: "high",
   },
+  email_inquiry_received: {
+    label: "Email Inquiry Received",
+    category: "conversion",
+    importance: "high",
+  },
+  event_attended: {
+    label: "Event Attended",
+    category: "acquisition",
+    importance: "medium",
+  },
   newsletter_signup: {
     label: "Newsletter Signup",
     category: "conversion",

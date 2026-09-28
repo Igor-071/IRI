@@ -17,6 +17,8 @@ export type EventType =
   | "form_submitted"
   | "booking_submitted"
   | "email_inquiry"
+  | "email_inquiry_received"
+  | "event_attended"
   | "newsletter_signup"
   | "lead_created"
   | "lead_qualified"
@@ -55,6 +57,8 @@ export interface EventMetadata {
   content?: string;
   articleTitle?: string;
   caseStudyTitle?: string;
+  eventName?: string;
+  eventType?: string;
   [key: string]: unknown;
 }
 
