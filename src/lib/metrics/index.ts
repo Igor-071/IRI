@@ -1,6 +1,6 @@
 import { people, events, ledger, companies } from "@/data";
 import { NOW } from "@/lib/config/constants";
-import type { LedgerEntry } from "@/data/ledger";
+import type { AcquisitionSource } from "@/types";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -14,6 +14,17 @@ export interface OverviewMetrics {
   leadToOpportunity: number;
   avgFirstResponse: number;
   funnel: [number, number, number, number, number];
+}
+
+export interface PipelineBySourceEntry {
+  source: AcquisitionSource;
+  value: number;
+}
+
+export interface RevenueBySourceEntry {
+  source: AcquisitionSource;
+  value: number;
+  count: number;
 }
 
 export interface WaitingLead {
@@ -101,7 +112,7 @@ export function getOverviewMetrics(): OverviewMetrics {
 
   const wonRevenue = wonEntries.reduce((sum, e) => sum + e.value, 0);
 
-  const leadToOpportunity = wonEntries.length / ledger.length;
+  const leadToOpportunity = ledger.length / people.length;
 
   return {
     inboundLeads: people.length,
@@ -170,4 +181,49 @@ export function getWaitingLeads(): WaitingLead[] {
   waiting.sort((a, b) => b.waitingMinutes - a.waitingMinutes);
 
   return waiting;
+}
+
+// ---------------------------------------------------------------------------
+// getPipelineBySource
+// ---------------------------------------------------------------------------
+
+export function getPipelineBySource(): PipelineBySourceEntry[] {
+  const openEntries = ledger.filter(
+    (e) => e.stage !== "won" && e.stage !== "lost",
+  );
+
+  const map = new Map<AcquisitionSource, number>();
+  for (const entry of openEntries) {
+    map.set(
+      entry.firstTouchSource,
+      (map.get(entry.firstTouchSource) ?? 0) + entry.value,
+    );
+  }
+
+  return Array.from(map.entries())
+    .map(([source, value]) => ({ source, value }))
+    .sort((a, b) => b.value - a.value);
+}
+
+// ---------------------------------------------------------------------------
+// getRevenueBySource
+// ---------------------------------------------------------------------------
+
+export function getRevenueBySource(): RevenueBySourceEntry[] {
+  const wonEntries = ledger.filter((e) => e.stage === "won");
+
+  const map = new Map<AcquisitionSource, { value: number; count: number }>();
+  for (const entry of wonEntries) {
+    const existing = map.get(entry.firstTouchSource);
+    if (existing) {
+      existing.value += entry.value;
+      existing.count += 1;
+    } else {
+      map.set(entry.firstTouchSource, { value: entry.value, count: 1 });
+    }
+  }
+
+  return Array.from(map.entries())
+    .map(([source, { value, count }]) => ({ source, value, count }))
+    .sort((a, b) => b.value - a.value);
 }
