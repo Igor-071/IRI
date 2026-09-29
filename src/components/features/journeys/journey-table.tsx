@@ -117,7 +117,7 @@ export function JourneyTable({ data }: JourneyTableProps) {
     <DataTable
       columns={columns}
       data={data}
-      onRowClick={(row) => router.push(`/leads/${row.id}?tab=journey`)}
+      onRowClick={(row) => router.push(`/leads/${row.id}#journey`)}
       emptyMessage="No journeys match these filters."
     />
   );

@@ -72,7 +72,7 @@ export default async function LeadDetailPage({
         </section>
 
         {/* Journey */}
-        <section>
+        <section id="journey">
           <h2 className="mb-4 text-sm font-semibold text-foreground">
             Customer journey
           </h2>
