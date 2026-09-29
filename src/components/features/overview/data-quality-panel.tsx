@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { people } from "@/data";
 import { getAttributionStatus } from "@/lib/attribution/status";
+import { getLeadPeople } from "@/lib/attribution/derived";
+import { resolvePersonSource } from "@/lib/metrics/attribution-metrics";
 import { formatMoney } from "@/lib/formatting/money";
 import { ledger } from "@/data/ledger";
 import {
@@ -20,17 +21,17 @@ interface StatusCount {
 
 function computeCounts(): StatusCount {
   const counts: StatusCount = { full: 0, partial: 0, unknown: 0 };
-  for (const person of people) {
-    const status = getAttributionStatus(person);
+  for (const person of getLeadPeople()) {
+    const status = getAttributionStatus(person.id);
     counts[status] += 1;
   }
   return counts;
 }
 
 function getRelationshipOnlyRevenue(): { value: number; count: number } {
-  // Opportunities where firstTouchSource is "unknown" but won
+  // Opportunities where derived first touch source is "unknown" but won
   const unknownWon = ledger.filter(
-    (e) => e.stage === "won" && e.firstTouchSource === "unknown",
+    (e) => e.stage === "won" && resolvePersonSource(e.primaryContactId, "first_touch") === "unknown",
   );
   return {
     value: unknownWon.reduce((sum, e) => sum + e.value, 0),
@@ -40,7 +41,7 @@ function getRelationshipOnlyRevenue(): { value: number; count: number } {
 
 export function DataQualityPanel() {
   const counts = computeCounts();
-  const total = people.length;
+  const total = counts.full + counts.partial + counts.unknown;
   const coveragePct = Math.round((counts.full / total) * 100);
   const relOnly = getRelationshipOnlyRevenue();
 

@@ -27,6 +27,13 @@ const EVENT_TYPE_TO_MECHANISM: Partial<Record<EventType, ConversionMechanism>> =
 // Lazy cache: personId → Touchpoint[]
 const cache = new Map<string, Touchpoint[]>();
 
+/**
+ * Clear the touchpoint cache. Useful for tests.
+ */
+export function clearTouchpointCache(): void {
+  cache.clear();
+}
+
 // Build session → events index
 let sessionEventsMap: Map<string, typeof events> | null = null;
 function getSessionEventsMap() {
@@ -56,8 +63,24 @@ function getPersonSessionsMap() {
   return personSessionsMap;
 }
 
+// Build personId → events index
+let personEventsMap: Map<string, typeof events> | null = null;
+function getPersonEventsMap() {
+  if (!personEventsMap) {
+    personEventsMap = new Map();
+    for (const e of events) {
+      const arr = personEventsMap.get(e.personId);
+      if (arr) arr.push(e);
+      else personEventsMap.set(e.personId, [e]);
+    }
+  }
+  return personEventsMap;
+}
+
 /**
  * Derive touchpoints from a person's sessions and events.
+ * Includes both session-based touchpoints and sessionless acquisition events
+ * (e.g. event_attended, campaign_clicked).
  * Returns touchpoints sorted by timestamp ascending.
  */
 export function deriveTouchpoints(personId: string): Touchpoint[] {
@@ -67,42 +90,97 @@ export function deriveTouchpoints(personId: string): Touchpoint[] {
   const personSessions = getPersonSessionsMap().get(personId) ?? [];
   const sessEvtMap = getSessionEventsMap();
 
-  const touchpoints: Touchpoint[] = personSessions
-    .slice()
-    .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
-    .map((session) => {
-      const sessionEvents = sessEvtMap.get(session.id) ?? [];
-      const conversionEvent = sessionEvents.find((e) =>
-        CONVERSION_EVENT_TYPES.has(e.type)
-      );
+  // Collect all person conversion events (both in-session and standalone)
+  const allPersonEvents = getPersonEventsMap().get(personId) ?? [];
+  const allConversionEvents = allPersonEvents
+    .filter((e) => CONVERSION_EVENT_TYPES.has(e.type))
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
-      const tp: Touchpoint = {
-        source: session.source as AcquisitionSource,
-        medium: session.medium,
-        sessionId: session.id,
-        timestamp: session.startedAt,
-        landingPage: session.landingPage,
-        referrer: session.referrer,
-        campaign: session.campaign,
-        content: session.content,
-        isConversion: !!conversionEvent,
-        conversionMechanism: conversionEvent
-          ? EVENT_TYPE_TO_MECHANISM[conversionEvent.type]
-          : undefined,
-      };
-      return tp;
+  // Session-based touchpoints
+  const sortedSessions = personSessions
+    .slice()
+    .sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+
+  const touchpoints: Touchpoint[] = sortedSessions.map((session) => {
+    const sessionEvents = sessEvtMap.get(session.id) ?? [];
+
+    // Check for in-session conversion
+    let conversionEvent = sessionEvents.find((e) =>
+      CONVERSION_EVENT_TYPES.has(e.type)
+    );
+
+    // Check for standalone conversion associated with this session:
+    // A standalone conversion (no sessionId) is associated with the last session
+    // that started before it, if no later session exists
+    if (!conversionEvent) {
+      const sessionIdx = sortedSessions.indexOf(session);
+      const nextSessionStart = sortedSessions[sessionIdx + 1]?.startedAt;
+
+      conversionEvent = allConversionEvents.find((e) => {
+        if (e.sessionId) return false; // already covered by in-session check
+        return (
+          e.timestamp >= session.startedAt &&
+          (!nextSessionStart || e.timestamp < nextSessionStart)
+        );
+      });
+    }
+
+    const source = session.source as AcquisitionSource;
+    const tp: Touchpoint = {
+      source,
+      medium: session.medium,
+      sessionId: session.id,
+      timestamp: session.startedAt,
+      landingPage: session.landingPage,
+      referrer: session.referrer,
+      campaign: session.campaign,
+      content: session.content,
+      isConversion: !!conversionEvent,
+      conversionMechanism: conversionEvent
+        ? EVENT_TYPE_TO_MECHANISM[conversionEvent.type]
+        : undefined,
+      kind: "session",
+      isMarketingTouch: isMarketingTouch(source),
+      sourceSystem: conversionEvent?.sourceSystem ?? session.sourceSystem,
+    };
+    return tp;
+  });
+
+  // Sessionless acquisition events (e.g. event_attended, campaign_clicked)
+  const personEvents = getPersonEventsMap().get(personId) ?? [];
+  for (const evt of personEvents) {
+    if (evt.sessionId) continue; // already covered by session touchpoints
+    if (evt.category !== "acquisition") continue;
+    if (evt.type !== "event_attended") continue;
+
+    const source: AcquisitionSource = "event";
+    touchpoints.push({
+      source,
+      medium: "none",
+      timestamp: evt.timestamp,
+      landingPage: "",
+      referrer: "",
+      isConversion: false,
+      kind: "event",
+      isMarketingTouch: isMarketingTouch(source),
+      sourceSystem: evt.sourceSystem,
     });
+  }
+
+  // Sort all touchpoints by timestamp
+  touchpoints.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
 
   cache.set(personId, touchpoints);
   return touchpoints;
 }
 
 /**
- * Get the first touchpoint (earliest visit).
+ * Get the first marketing touchpoint (earliest visit with a marketing source).
+ * Per §5.3: "Earliest touchpoint with isMarketingTouch before the conversion. None → unknown."
  */
 export function getFirstTouch(personId: string): Touchpoint | undefined {
   const tps = deriveTouchpoints(personId);
-  return tps[0];
+  return tps.find((tp) => tp.isMarketingTouch);
 }
 
 /**
@@ -114,7 +192,7 @@ export function getLastMarketingTouch(
 ): Touchpoint | undefined {
   const tps = deriveTouchpoints(personId);
   for (let i = tps.length - 1; i >= 0; i--) {
-    if (isMarketingTouch(tps[i].source)) return tps[i];
+    if (tps[i].isMarketingTouch) return tps[i];
   }
   return undefined;
 }

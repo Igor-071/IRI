@@ -292,10 +292,10 @@ export function getJourneyPathSegments(
     const cfg = sourceConfig[session.source];
     if (
       segments.length === 0 ||
-      segments[segments.length - 1].label !== cfg.shortLabel
+      segments[segments.length - 1].label !== cfg.label
     ) {
       segments.push({
-        label: cfg.shortLabel,
+        label: cfg.label,
         source: session.source,
         isConversion: false,
       });

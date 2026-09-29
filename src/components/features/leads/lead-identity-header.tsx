@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Person, Company } from "@/types";
 import { Avatar, AvatarFallback } from "@/components/ui/atoms/avatar";
 import { StageBadge } from "@/components/domain/stage-badge";
+import { getDisplayStage } from "@/lib/attribution/derived";
 import { OwnerChip } from "@/components/domain/owner-chip";
 import { DateTime } from "@/components/domain/date-time";
 import { Building2, Mail } from "lucide-react";
@@ -58,7 +59,7 @@ export function LeadIdentityHeader({
 
       {/* Right: Stage, Owner, Last Activity */}
       <div className="flex flex-wrap items-center gap-3">
-        <StageBadge stage={person.displayStage} />
+        <StageBadge stage={getDisplayStage(person.id)} />
         <OwnerChip ownerId={person.ownerId} />
         {lastActivityDate && (
           <DateTime

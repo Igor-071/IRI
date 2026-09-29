@@ -19,16 +19,14 @@ export function getAccountMetrics(companyId: string): AccountMetrics {
   const people = getPeopleByCompanyId(companyId);
   const opportunities = getOpportunitiesByCompanyId(companyId);
 
-  let sessions = 0;
+  const sessionIds = new Set<string>();
   let firstSeen: string | null = null;
   let lastActivity: string | null = null;
 
   for (const person of people) {
     const events = getEventsByPersonId(person.id);
     for (const ev of events) {
-      if (ev.type === "session_started") {
-        sessions++;
-      }
+      if (ev.sessionId) sessionIds.add(ev.sessionId);
       if (firstSeen === null || ev.timestamp < firstSeen) {
         firstSeen = ev.timestamp;
       }
@@ -37,6 +35,8 @@ export function getAccountMetrics(companyId: string): AccountMetrics {
       }
     }
   }
+
+  const sessions = sessionIds.size;
 
   const openOpps = opportunities.filter((o) => OPEN_STAGES.has(o.stage));
   const openPipeline = openOpps.reduce((sum, o) => sum + o.value, 0);

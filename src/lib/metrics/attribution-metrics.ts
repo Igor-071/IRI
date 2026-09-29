@@ -1,8 +1,13 @@
-import type { AcquisitionSource, AttributionModel, Person } from "@/types";
+import type { AcquisitionSource, AttributionModel } from "@/types";
 import type { LedgerEntry } from "@/data/ledger";
-import { people, ledger } from "@/data";
-import { getPersonById } from "@/lib/data/repositories";
+import { ledger } from "@/data";
 import { getLastMarketingTouch } from "@/lib/attribution/touchpoints";
+import {
+  getFirstTouchSource,
+  getConversionChannel,
+  getDisplayStage,
+  getLeadPeople,
+} from "@/lib/attribution/derived";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,24 +48,21 @@ const QUALIFIED_STAGES = new Set([
 
 /**
  * Resolve which acquisition source a person falls under for a given model.
- *
- * - first_touch → person.firstTouchSource
- * - last_touch  → last marketing touch source, or "unknown"
- * - conversion_touch → person.conversionChannel
+ * All values are derived from touchpoints — no stored fields.
  */
 export function resolvePersonSource(
-  person: Person,
+  personId: string,
   model: AttributionModel,
 ): AcquisitionSource {
   switch (model) {
     case "first_touch":
-      return person.firstTouchSource;
+      return getFirstTouchSource(personId);
     case "last_touch": {
-      const lmt = getLastMarketingTouch(person.id);
+      const lmt = getLastMarketingTouch(personId);
       return lmt?.source ?? "unknown";
     }
     case "conversion_touch":
-      return person.conversionChannel;
+      return getConversionChannel(personId);
   }
 }
 
@@ -72,9 +74,7 @@ export function resolveOpportunitySource(
   entry: LedgerEntry,
   model: AttributionModel,
 ): AcquisitionSource {
-  const person = getPersonById(entry.primaryContactId);
-  if (!person) return "unknown";
-  return resolvePersonSource(person, model);
+  return resolvePersonSource(entry.primaryContactId, model);
 }
 
 // ---------------------------------------------------------------------------
@@ -115,12 +115,14 @@ export function getAttributionMetrics(
     return row;
   }
 
-  // Count leads and qualified per source
-  for (const person of people) {
-    const source = resolvePersonSource(person, model);
+  // Count leads and qualified per source — only people with lead_created event
+  const leadPeople = getLeadPeople();
+  for (const person of leadPeople) {
+    const source = resolvePersonSource(person.id, model);
     const row = getOrCreate(source);
     row.leads += 1;
-    if (QUALIFIED_STAGES.has(person.displayStage)) {
+    const stage = getDisplayStage(person.id);
+    if (QUALIFIED_STAGES.has(stage)) {
       row.qualified += 1;
     }
   }

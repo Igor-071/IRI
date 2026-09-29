@@ -2,11 +2,13 @@ import { describe, it, expect } from "vitest";
 import { companies, people, sessions, events, ledger, relationships, selfReported } from "@/data";
 import { getAttributionStatus, getAttributionCoverage } from "@/lib/attribution/status";
 import { deriveTouchpoints, getFirstTouch, getLastMarketingTouch, getConversionTouch } from "@/lib/attribution/touchpoints";
+import { getFirstTouchSource, getLeadPeople } from "@/lib/attribution/derived";
 import { getFunnelCounts, getOverviewMetrics, getAvgFirstResponse } from "@/lib/metrics";
+import { getAttributionMetrics } from "@/lib/metrics/attribution-metrics";
 import { getJourneyPath } from "@/lib/journeys";
 import { globalSearch } from "@/lib/search";
 import { getPersonById, getCompanyById, getLeads, getSessionsByPersonId, getEventsByPersonId, getOpportunitiesByCompanyId } from "@/lib/data/repositories";
-import { isMarketingTouch } from "@/lib/config/sources";
+import { getPersonEngagement } from "@/lib/metrics/engagement";
 
 // ---------------------------------------------------------------------------
 // §14 — Volume targets
@@ -17,8 +19,13 @@ describe("volume targets", () => {
     expect(companies).toHaveLength(45);
   });
 
-  it("has 80 people (leads)", () => {
-    expect(people).toHaveLength(80);
+  it("has 81 total people", () => {
+    // 80 leads + Michael Brown (Contact, no lead_created)
+    expect(people).toHaveLength(81);
+  });
+
+  it("has 80 leads (people with lead_created event)", () => {
+    expect(getLeadPeople()).toHaveLength(80);
   });
 
   it("has 26 opportunities in ledger", () => {
@@ -48,15 +55,20 @@ describe("volume targets", () => {
 });
 
 // ---------------------------------------------------------------------------
-// §14 — First touch source distribution
+// §14 — First touch source distribution (derived, not stored)
 // ---------------------------------------------------------------------------
 
-describe("first touch source distribution", () => {
+describe("first touch source distribution (derived)", () => {
+  const leadPeople = getLeadPeople();
   const dist: Record<string, number> = {};
-  for (const p of people) {
-    dist[p.firstTouchSource] = (dist[p.firstTouchSource] || 0) + 1;
+  for (const p of leadPeople) {
+    const source = getFirstTouchSource(p.id);
+    dist[source] = (dist[source] || 0) + 1;
   }
 
+  // §9.3 first-touch distribution targets.
+  // Partial(b) leads have marketing sessions → their first touch IS the marketing source.
+  // Only partial(a) + unknown have direct sessions → first touch = unknown.
   it("Google Organic: 17", () => expect(dist["google_organic"]).toBe(17));
   it("Google Ads: 15", () => expect(dist["google_ads"]).toBe(15));
   it("LinkedIn Organic: 12", () => expect(dist["linkedin_organic"]).toBe(12));
@@ -65,8 +77,8 @@ describe("first touch source distribution", () => {
   it("Meta: 5", () => expect(dist["meta"]).toBe(5));
   it("Event: 4", () => expect(dist["event"]).toBe(4));
   it("Email: 2", () => expect(dist["email"]).toBe(2));
-  it("Unknown + Direct = 11", () => {
-    expect((dist["unknown"] ?? 0) + (dist["direct"] ?? 0)).toBe(11);
+  it("Unknown: 11 (4 partial(a) + 7 unknown-status leads)", () => {
+    expect(dist["unknown"] ?? 0).toBe(11);
   });
 });
 
@@ -118,13 +130,14 @@ describe("revenue and pipeline", () => {
 });
 
 // ---------------------------------------------------------------------------
-// §14 — Attribution status distribution
+// §14 — Attribution status distribution (derived from leads only)
 // ---------------------------------------------------------------------------
 
 describe("attribution status distribution", () => {
+  const leadPeople = getLeadPeople();
   const statusCounts = { full: 0, partial: 0, unknown: 0 };
-  for (const p of people) {
-    const s = getAttributionStatus(p);
+  for (const p of leadPeople) {
+    const s = getAttributionStatus(p.id);
     statusCounts[s]++;
   }
 
@@ -133,7 +146,7 @@ describe("attribution status distribution", () => {
   it("7 Unknown", () => expect(statusCounts.unknown).toBe(7));
 
   it("attribution coverage = 72.5%", () => {
-    const coverage = getAttributionCoverage(people);
+    const coverage = getAttributionCoverage(leadPeople);
     expect(coverage).toBeCloseTo(0.725, 2);
   });
 });
@@ -143,27 +156,79 @@ describe("attribution status distribution", () => {
 // ---------------------------------------------------------------------------
 
 describe("attribution derivation", () => {
-  it("Full status = person has at least one session with marketing source", () => {
-    const fullPeople = people.filter((p) => getAttributionStatus(p) === "full");
+  const leadPeople = getLeadPeople();
+
+  it("Full status = person has at least one marketing touchpoint + conversion known", () => {
+    const fullPeople = leadPeople.filter((p) => getAttributionStatus(p.id) === "full");
     for (const person of fullPeople) {
       const touchpoints = deriveTouchpoints(person.id);
-      const hasMarketing = touchpoints.some((tp) => isMarketingTouch(tp.source));
+      const hasMarketing = touchpoints.some((tp) => tp.isMarketingTouch);
       expect(hasMarketing).toBe(true);
     }
   });
 
-  it("Unknown status = no marketing sessions, non-marketing firstTouchSource, no relationship/self-reported", () => {
+  it("Unknown status = no marketing touchpoints, no relationship/self-reported", () => {
     const relSet = new Set(relationships.map((r) => r.personId));
     const srSet = new Set(selfReported.map((sr) => sr.personId));
-    const unknownPeople = people.filter((p) => getAttributionStatus(p) === "unknown");
+    const unknownPeople = leadPeople.filter((p) => getAttributionStatus(p.id) === "unknown");
     for (const person of unknownPeople) {
       const touchpoints = deriveTouchpoints(person.id);
-      const hasMarketing = touchpoints.some((tp) => isMarketingTouch(tp.source));
+      const hasMarketing = touchpoints.some((tp) => tp.isMarketingTouch);
       expect(hasMarketing).toBe(false);
-      expect(isMarketingTouch(person.firstTouchSource)).toBe(false);
       expect(relSet.has(person.id)).toBe(false);
       expect(srSet.has(person.id)).toBe(false);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// §9.3 — Multi-touch and journey realism
+// ---------------------------------------------------------------------------
+
+describe("multi-touch and journey realism", () => {
+  const leadPeople = getLeadPeople();
+
+  it("≥30% of Full leads have different First vs Last Marketing Touch", () => {
+    const fullLeads = leadPeople.filter((p) => getAttributionStatus(p.id) === "full");
+    const multiTouch = fullLeads.filter((p) => {
+      const ft = getFirstTouch(p.id);
+      const lmt = getLastMarketingTouch(p.id);
+      return ft && lmt && ft.source !== lmt.source;
+    });
+    expect(multiTouch.length / fullLeads.length).toBeGreaterThanOrEqual(0.3);
+  });
+
+  it("~50% of conversions happen in Direct sessions (40-60%)", () => {
+    const directConversions = leadPeople.filter((p) => {
+      const ct = getConversionTouch(p.id);
+      return ct && ct.source === "direct";
+    });
+    const totalWithConversion = leadPeople.filter((p) => !!getConversionTouch(p.id));
+    const ratio = directConversions.length / totalWithConversion.length;
+    expect(ratio).toBeGreaterThanOrEqual(0.4);
+    expect(ratio).toBeLessThanOrEqual(0.6);
+  });
+
+  it("most Full leads have multi-session journeys (≥80%)", () => {
+    const fullLeads = leadPeople.filter((p) => getAttributionStatus(p.id) === "full");
+    const multiSession = fullLeads.filter((p) => {
+      const tps = deriveTouchpoints(p.id);
+      return tps.length >= 2;
+    });
+    expect(multiSession.length / fullLeads.length).toBeGreaterThanOrEqual(0.8);
+  });
+
+  it("partial(b) leads have marketing touch but no conversion", () => {
+    const partialLeads = leadPeople.filter((p) => getAttributionStatus(p.id) === "partial");
+    // Some partial leads should be type (b): has marketing touch, no conversion
+    const partialB = partialLeads.filter((p) => {
+      const tps = deriveTouchpoints(p.id);
+      const hasMarketing = tps.some((tp) => tp.isMarketingTouch);
+      const hasConversion = tps.some((tp) => tp.isConversion);
+      return hasMarketing && !hasConversion;
+    });
+    // §9.3: 11 partial(b) leads
+    expect(partialB.length).toBe(11);
   });
 });
 
@@ -190,17 +255,15 @@ describe("hero: Acme Corp / John Smith", () => {
     expect(john!.companyId).toBe("company_acme");
   });
 
-  it("John Smith has google_organic first touch", () => {
-    const john = getPersonById("person_john_smith")!;
-    expect(john.firstTouchSource).toBe("google_organic");
+  it("John Smith derived first touch = google_organic", () => {
+    expect(getFirstTouchSource("person_john_smith")).toBe("google_organic");
   });
 
   it("John Smith attribution status is full", () => {
-    const john = getPersonById("person_john_smith")!;
-    expect(getAttributionStatus(john)).toBe("full");
+    expect(getAttributionStatus("person_john_smith")).toBe("full");
   });
 
-  it("John Smith first touch = google_organic", () => {
+  it("John Smith first touch touchpoint = google_organic", () => {
     const ft = getFirstTouch("person_john_smith");
     expect(ft).toBeDefined();
     expect(ft!.source).toBe("google_organic");
@@ -235,10 +298,30 @@ describe("hero: Acme Corp / John Smith", () => {
     const e = getEventsByPersonId("person_john_smith");
     expect(e.length).toBeGreaterThan(0);
   });
+
+  it("Acme opportunity is €120K at proposal stage", () => {
+    const opps = getOpportunitiesByCompanyId("company_acme");
+    expect(opps.length).toBeGreaterThan(0);
+    const main = opps.find((o) => o.opportunityName === "AI Transformation Platform");
+    expect(main).toBeDefined();
+    expect(main!.value).toBe(120000);
+    expect(main!.stage).toBe("proposal");
+  });
+
+  it("John Smith engagement: 5 sessions / 17 pages / 4 content / 9 emails / 2 meetings / 11 days / 17m", () => {
+    const eng = getPersonEngagement("person_john_smith");
+    expect(eng.sessions).toBe(5);
+    expect(eng.pageViews).toBe(17);
+    expect(eng.contentViewed).toBe(4);
+    expect(eng.emails).toBe(9);
+    expect(eng.meetings).toBe(2);
+    expect(eng.daysToLead).toBe(11);
+    expect(eng.firstResponseMinutes).toBe(17);
+  });
 });
 
 // ---------------------------------------------------------------------------
-// Hero: Thomas Weber (Atlas) — partial attribution
+// Hero: Thomas Weber (Atlas) — partial attribution (relationship only)
 // ---------------------------------------------------------------------------
 
 describe("hero: Thomas Weber / Atlas Systems — partial attribution", () => {
@@ -247,14 +330,30 @@ describe("hero: Thomas Weber / Atlas Systems — partial attribution", () => {
     expect(thomas).toBeDefined();
   });
 
-  it("Thomas Weber attribution status is partial", () => {
-    const thomas = getPersonById("person_thomas_weber")!;
-    expect(getAttributionStatus(thomas)).toBe("partial");
+  it("Thomas Weber derived first touch = unknown (direct only, no marketing)", () => {
+    expect(getFirstTouchSource("person_thomas_weber")).toBe("unknown");
   });
 
-  it("Thomas Weber has no marketing sessions", () => {
+  it("Thomas Weber attribution status is partial (relationship evidence)", () => {
+    expect(getAttributionStatus("person_thomas_weber")).toBe("partial");
+  });
+
+  it("Thomas Weber has no marketing touchpoints", () => {
+    const ft = getFirstTouch("person_thomas_weber");
+    expect(ft).toBeUndefined();
+  });
+
+  it("Thomas Weber has no last marketing touch", () => {
     const lmt = getLastMarketingTouch("person_thomas_weber");
     expect(lmt).toBeUndefined();
+  });
+
+  it("Thomas Weber deal is €180K won", () => {
+    const opps = getOpportunitiesByCompanyId("company_atlas");
+    const main = opps.find((o) => o.opportunityName === "AI Discovery & Prototype Program");
+    expect(main).toBeDefined();
+    expect(main!.value).toBe(180000);
+    expect(main!.stage).toBe("won");
   });
 });
 
@@ -268,14 +367,74 @@ describe("hero: Anna Keller / Vector Group — unknown attribution", () => {
     expect(anna).toBeDefined();
   });
 
-  it("Anna Keller attribution status is unknown", () => {
-    const anna = getPersonById("person_anna_keller")!;
-    expect(getAttributionStatus(anna)).toBe("unknown");
+  it("Anna Keller derived first touch = unknown (direct only)", () => {
+    expect(getFirstTouchSource("person_anna_keller")).toBe("unknown");
   });
 
-  it("Anna Keller first touch source is unknown", () => {
-    const anna = getPersonById("person_anna_keller")!;
-    expect(anna.firstTouchSource).toBe("unknown");
+  it("Anna Keller attribution status is unknown", () => {
+    expect(getAttributionStatus("person_anna_keller")).toBe("unknown");
+  });
+
+  it("Anna Keller has no marketing touchpoints", () => {
+    const ft = getFirstTouch("person_anna_keller");
+    expect(ft).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hero: Marta Novak (Meridian) — event first touch
+// ---------------------------------------------------------------------------
+
+describe("hero: Marta Novak / Meridian — event first touch", () => {
+  it("Marta Novak derived first touch = event", () => {
+    expect(getFirstTouchSource("person_marta_novak")).toBe("event");
+  });
+
+  it("Marta Novak attribution status is full", () => {
+    expect(getAttributionStatus("person_marta_novak")).toBe("full");
+  });
+
+  it("Marta Novak has event-based touchpoint", () => {
+    const touchpoints = deriveTouchpoints("person_marta_novak");
+    const eventTp = touchpoints.find((tp) => tp.kind === "event");
+    expect(eventTp).toBeDefined();
+    expect(eventTp!.source).toBe("event");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Attribution table revenue sums to won revenue in every model
+// ---------------------------------------------------------------------------
+
+describe("attribution table revenue consistency", () => {
+  for (const model of ["first_touch", "last_touch", "conversion_touch"] as const) {
+    it(`${model} total revenue = €740,000`, () => {
+      const metrics = getAttributionMetrics(model);
+      expect(metrics.totalWonRevenue).toBe(740_000);
+    });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Michael Brown is NOT a lead
+// ---------------------------------------------------------------------------
+
+describe("Michael Brown (Contact, not lead)", () => {
+  it("Michael Brown exists as a person", () => {
+    const michael = getPersonById("person_michael_brown");
+    expect(michael).toBeDefined();
+  });
+
+  it("Michael Brown is NOT in getLeadPeople()", () => {
+    const leadIds = new Set(getLeadPeople().map((p) => p.id));
+    expect(leadIds.has("person_michael_brown")).toBe(false);
+  });
+
+  it("Michael Brown has no lead_created event", () => {
+    const michaelEvents = events.filter(
+      (e) => e.personId === "person_michael_brown" && e.type === "lead_created",
+    );
+    expect(michaelEvents).toHaveLength(0);
   });
 });
 
@@ -296,7 +455,7 @@ describe("repositories", () => {
     expect(c!.name).toBe("Acme Inc");
   });
 
-  it("getLeads returns all 80 people with no filters", () => {
+  it("getLeads returns all 80 leads with no filters", () => {
     expect(getLeads()).toHaveLength(80);
   });
 

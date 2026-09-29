@@ -26,7 +26,7 @@ export type AttributionStatus = "full" | "partial" | "unknown";
 export interface Touchpoint {
   source: AcquisitionSource;
   medium: string;
-  sessionId: string;
+  sessionId?: string;
   timestamp: string;
   landingPage: string;
   referrer: string;
@@ -34,6 +34,9 @@ export interface Touchpoint {
   content?: string;
   isConversion: boolean;
   conversionMechanism?: ConversionMechanism;
+  kind: "session" | "event";
+  isMarketingTouch: boolean;
+  sourceSystem?: string;
 }
 
 export type RelationshipType =

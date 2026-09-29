@@ -11,7 +11,7 @@ export type {
 
 export type { Company } from "./company";
 
-export type { Person, DisplayStage } from "./person";
+export type { Person, DisplayStage, LeadStatus } from "./person";
 
 export type { Session } from "./session";
 

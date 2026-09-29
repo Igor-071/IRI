@@ -21,6 +21,18 @@ const categoryAccents: Record<string, string> = {
   revenue: "bg-success",
 };
 
+// Human-readable category labels
+const categoryLabels: Record<string, string> = {
+  acquisition: "Acquisition",
+  website: "Website",
+  content: "Content",
+  conversion: "Conversion",
+  communication: "Communication",
+  meeting: "Meeting",
+  crm: "CRM",
+  revenue: "Revenue",
+};
+
 interface JourneyTimelineProps {
   personId?: string;
   companyId?: string;
@@ -36,6 +48,8 @@ interface TimelineEvent {
   event: Event;
   collapsed?: { count: number };
   actorName?: string;
+  /** When a meeting_booked and meeting_completed share a meetingId, merge them */
+  mergedMeeting?: { bookedAt: string; completedAt: string; duration?: number };
 }
 
 function formatTimeOnly(timestamp: string): string {
@@ -58,14 +72,127 @@ function formatDayLabel(timestamp: string): string {
     .toUpperCase();
 }
 
+/**
+ * Build a clear, human-readable title for a timeline event.
+ * Uses the eventTypeConfig label as the primary title, then adds
+ * contextual detail from the event description/metadata.
+ */
+function buildEventTitle(ev: Event, item: TimelineEvent): string {
+  const config = eventTypeConfig[ev.type];
+
+  if (item.collapsed) {
+    return `${item.collapsed.count} pages viewed`;
+  }
+
+  if (item.mergedMeeting) {
+    const dur = item.mergedMeeting.duration;
+    return `${ev.description}${dur ? ` (${dur} min)` : ""}`;
+  }
+
+  // For high-importance events, use the config label + quoted content if available
+  switch (ev.type) {
+    case "form_submitted": {
+      const content = ev.metadata.content as string | undefined;
+      if (content) {
+        const truncated = content.length > 80 ? content.slice(0, 77) + "..." : content;
+        return `${config.label} — "${truncated}"`;
+      }
+      return config.label;
+    }
+    case "booking_submitted":
+      return config.label;
+    case "email_inquiry_received":
+    case "email_inquiry":
+      return config.label;
+    case "lead_created":
+      return config.label;
+    case "opportunity_created":
+      return ev.description;
+    case "proposal_sent":
+      return ev.description;
+    case "deal_won":
+    case "deal_lost":
+      return ev.description;
+    case "stage_changed":
+      return ev.description;
+    case "email_sent":
+    case "email_received": {
+      const subject = ev.metadata.subject as string | undefined;
+      return subject ? `${config.label}: ${subject}` : ev.description;
+    }
+    case "blog_post_viewed": {
+      const title = ev.metadata.articleTitle as string | undefined;
+      return title ? `Read: ${title}` : ev.description;
+    }
+    case "case_study_viewed": {
+      const title = ev.metadata.caseStudyTitle as string | undefined;
+      return title ? `Viewed: ${title}` : ev.description;
+    }
+    case "page_viewed": {
+      const page = ev.metadata.page as string | undefined;
+      return page ? `Viewed ${page}` : ev.description;
+    }
+    default:
+      return ev.description || config.label;
+  }
+}
+
 function collapsePageViews(events: Event[], personNameMap?: Map<string, string>): TimelineEvent[] {
   const result: TimelineEvent[] = [];
-  let i = 0;
 
+  // First pass: merge meeting_booked + meeting_completed by meetingId
+  const meetingCompletedByMeetingId = new Map<string, Event>();
+  for (const ev of events) {
+    if (ev.type === "meeting_completed") {
+      const meetingId = ev.metadata.meetingId as string | undefined;
+      if (meetingId) meetingCompletedByMeetingId.set(meetingId, ev);
+    }
+  }
+
+  const skippedEventIds = new Set<string>();
+  // Mark meeting_booked events that have a matching completion — we'll merge them
+  const mergedBookings = new Map<string, Event>(); // eventId → completed event
+  for (const ev of events) {
+    if (ev.type === "meeting_booked") {
+      const meetingId = ev.metadata.meetingId as string | undefined;
+      if (meetingId) {
+        const completed = meetingCompletedByMeetingId.get(meetingId);
+        if (completed) {
+          mergedBookings.set(ev.id, completed);
+          skippedEventIds.add(completed.id);
+        }
+      }
+    }
+  }
+
+  let i = 0;
   while (i < events.length) {
     const ev = events[i];
+
+    // Skip completed meetings that are merged into their booking
+    if (skippedEventIds.has(ev.id)) {
+      i++;
+      continue;
+    }
+
     const config = eventTypeConfig[ev.type];
     const actorName = personNameMap?.get(ev.personId);
+
+    // Handle merged meetings
+    const completedEvent = mergedBookings.get(ev.id);
+    if (completedEvent) {
+      result.push({
+        event: ev,
+        actorName,
+        mergedMeeting: {
+          bookedAt: ev.timestamp,
+          completedAt: completedEvent.timestamp,
+          duration: completedEvent.metadata.duration as number | undefined,
+        },
+      });
+      i++;
+      continue;
+    }
 
     // Collapse consecutive low-importance page_viewed events within same session
     if (ev.type === "page_viewed" && config.importance === "low") {
@@ -190,14 +317,12 @@ export function JourneyTimeline({
                   categoryAccents[ev.category] ?? "bg-muted-foreground";
                 const isHigh = config.importance === "high";
                 const isLow = config.importance === "low";
+                const catLabel = categoryLabels[ev.category] ?? ev.category;
 
-                const description = item.collapsed
-                  ? `${item.collapsed.count} pages viewed`
-                  : ev.description;
-
+                const displayTitle = buildEventTitle(ev, item);
                 const displayText = item.actorName
-                  ? `${item.actorName} \u2014 ${description}`
-                  : description;
+                  ? `${item.actorName} \u2014 ${displayTitle}`
+                  : displayTitle;
 
                 return (
                   <div
@@ -221,7 +346,7 @@ export function JourneyTimeline({
                       )}
                     />
 
-                    {/* Description */}
+                    {/* Description + category label */}
                     <div className="min-w-0 flex-1">
                       <span
                         className={cn(
@@ -233,12 +358,15 @@ export function JourneyTimeline({
                       >
                         {displayText}
                       </span>
+                      <span className="ml-2 text-[10px] text-muted-foreground/50">
+                        {catLabel}
+                      </span>
                     </div>
 
-                    {/* Source system */}
+                    {/* Source system chip — always visible */}
                     <SourceSystemChip
                       system={ev.sourceSystem}
-                      className="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                      className="shrink-0"
                     />
                   </div>
                 );

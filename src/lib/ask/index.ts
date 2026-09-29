@@ -4,21 +4,30 @@ import {
   getLastMarketingTouch,
   getConversionTouch,
 } from "@/lib/attribution";
+import { getDisplayStage } from "@/lib/attribution/derived";
+import { resolvePersonSource } from "@/lib/metrics/attribution-metrics";
 import { sourceConfig, getSourceLabel } from "@/lib/config/sources";
 import { NOW } from "@/lib/config/constants";
 import { getPipelineBySource } from "@/lib/metrics";
 import { getAttributionMetrics } from "@/lib/metrics/attribution-metrics";
 import { formatMoney } from "@/lib/formatting/money";
+import { formatDate } from "@/lib/formatting/dates";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+export interface EvidenceItem {
+  date: string;
+  description: string;
+  href?: string;
+}
+
 export interface AskAnswer {
   type:
     | "company"
     | "person"
-    | "waiting"
+    | "won_content"
     | "pipeline"
     | "unattributed"
     | "conversion"
@@ -28,6 +37,7 @@ export interface AskAnswer {
   summary: string;
   details?: Record<string, string | number | undefined>;
   items?: Array<{ label: string; value: string; href?: string }>;
+  evidence?: EvidenceItem[];
   cta?: { label: string; href: string };
 }
 
@@ -38,7 +48,10 @@ export interface AskAnswer {
 export const PROMPT_CHIPS: Array<{ label: string; value: string }> = [
   { label: "Attribution", value: "Where did Acme come from?" },
   { label: "Pipeline", value: "Which channel generated the most pipeline?" },
-  { label: "Waiting", value: "Show leads waiting for a reply." },
+  {
+    label: "Won Content",
+    value: "Which content appears most in won journeys?",
+  },
   {
     label: "Unattributed",
     value: "What are our biggest unattributed opportunities?",
@@ -64,15 +77,6 @@ function promptChipsAnswer(): AskAnswer {
 
 function daysBetween(from: Date, to: Date): number {
   return Math.floor((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function humanDuration(days: number): string {
-  if (days <= 0) return "today";
-  if (days === 1) return "1 day";
-  if (days < 7) return `${days} days`;
-  const weeks = Math.floor(days / 7);
-  if (weeks === 1) return "1 week";
-  return `${weeks} weeks`;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,26 +139,52 @@ function tryCompanyAttribution(query: string): AskAnswer | null {
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ")
     : "Unknown";
+  const conversionChannel = conversion
+    ? sourceConfig[conversion.source].label
+    : "Unknown";
 
   const oppLabel = opportunity
     ? `${formatMoney(opportunity.value)} · ${opportunity.stage.charAt(0).toUpperCase() + opportunity.stage.slice(1)}`
     : undefined;
 
+  // Build evidence from contact's events
+  const contactEvidence: EvidenceItem[] = [];
+  if (contact) {
+    const personEvents = events
+      .filter((e) => e.personId === contact.id)
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    const keyTypes = new Set([
+      "session_started", "form_submitted", "booking_submitted",
+      "email_inquiry_received", "newsletter_signup", "lead_created",
+      "opportunity_created", "deal_won",
+    ]);
+    for (const ev of personEvents) {
+      if (keyTypes.has(ev.type)) {
+        contactEvidence.push({
+          date: formatDate(ev.timestamp),
+          description: ev.description,
+          href: `/leads/${contact.id}`,
+        });
+      }
+    }
+  }
+
   return {
     type: "company",
     title: `Attribution for ${company.name}`,
     summary: contact
-      ? `${contact.name} first arrived via ${firstTouchLabel} and last engaged through ${lastMarketingLabel} before converting via ${conversionMechanism}.`
+      ? `${contact.name} first arrived via ${firstTouchLabel} and last engaged through ${lastMarketingLabel} before converting via ${conversionChannel} / ${conversionMechanism}.`
       : `No contacts found for ${company.name}.`,
     details: {
       "First Touch": firstTouchLabel,
       "Last Marketing Touch": lastMarketingLabel,
-      Conversion: `Direct / ${conversionMechanism}`,
+      Conversion: `${conversionChannel} / ${conversionMechanism}`,
       Opportunity: oppLabel,
     },
+    evidence: contactEvidence.length > 0 ? contactEvidence : undefined,
     cta: contact
       ? {
-          label: `Open ${company.name} journey →`,
+          label: `Open ${company.name} journey`,
           href: `/leads/${contact.id}`,
         }
       : undefined,
@@ -210,6 +240,23 @@ function tryPersonQuery(query: string): AskAnswer | null {
     ? conversion.conversionMechanism.replace(/_/g, " ")
     : "Unknown";
 
+  // Evidence: key journey events
+  const personEvents = events
+    .filter((e) => e.personId === person.id)
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const keyTypes = new Set([
+    "session_started", "form_submitted", "booking_submitted",
+    "email_inquiry_received", "newsletter_signup", "lead_created",
+    "opportunity_created", "deal_won", "deal_lost",
+  ]);
+  const evidence: EvidenceItem[] = personEvents
+    .filter((ev) => keyTypes.has(ev.type))
+    .map((ev) => ({
+      date: formatDate(ev.timestamp),
+      description: ev.description,
+      href: `/leads/${person.id}`,
+    }));
+
   return {
     type: "person",
     title: person.name,
@@ -218,11 +265,12 @@ function tryPersonQuery(query: string): AskAnswer | null {
       Email: person.email,
       Title: person.title,
       Company: company?.name,
-      Stage: person.displayStage,
+      Stage: getDisplayStage(person.id),
       "First touch": firstTouchLabel,
       "Last marketing touch": lastMarketingLabel,
       "Conversion mechanism": conversionMechanism,
     },
+    evidence: evidence.length > 0 ? evidence : undefined,
   };
 }
 
@@ -252,8 +300,8 @@ function tryPipelineBySource(query: string): AskAnswer | null {
 
   return {
     type: "pipeline",
-    title: "Pipeline by Source (First Touch)",
-    summary: `${topLabel} generated the most open pipeline with ${formatMoney(top.value)}, out of ${formatMoney(totalPipeline)} total.`,
+    title: "Open Pipeline by Source (First Touch)",
+    summary: `${topLabel} generated the most open pipeline with ${formatMoney(top.value)}, out of ${formatMoney(totalPipeline)} total open pipeline.`,
     details: {
       "Top source": topLabel,
       "Top source pipeline": formatMoney(top.value),
@@ -277,7 +325,7 @@ function tryUnattributedOpportunities(query: string): AskAnswer | null {
   if (!UNATTRIBUTED_PATTERNS.test(query)) return null;
 
   const unattributed = ledger
-    .filter((entry) => entry.firstTouchSource === "unknown")
+    .filter((entry) => resolvePersonSource(entry.primaryContactId, "first_touch") === "unknown")
     .sort((a, b) => b.value - a.value);
 
   if (unattributed.length === 0) {
@@ -353,72 +401,79 @@ function tryConversionRate(query: string): AskAnswer | null {
 }
 
 // ---------------------------------------------------------------------------
-// Pattern: waiting leads
+// Pattern: content in won journeys
 // ---------------------------------------------------------------------------
 
-const WAITING_PATTERNS = /\b(waiting|reply|response|pending)\b/i;
+const WON_CONTENT_PATTERNS = /\b(content.*won|won.*content|won.*journey|content.*journey)\b/i;
 
-function tryWaitingLeads(query: string): AskAnswer | null {
-  if (!WAITING_PATTERNS.test(query)) return null;
+function tryWonContent(query: string): AskAnswer | null {
+  if (!WON_CONTENT_PATTERNS.test(query)) return null;
 
-  // Group events by person, sorted by timestamp descending
-  const eventsByPerson = new Map<string, typeof events>();
-  for (const e of events) {
-    const arr = eventsByPerson.get(e.personId);
-    if (arr) arr.push(e);
-    else eventsByPerson.set(e.personId, [e]);
-  }
+  // Find all won deals
+  const wonDeals = ledger.filter((l) => l.stage === "won");
+  const wonContactIds = new Set(wonDeals.map((d) => d.primaryContactId));
 
-  const waiting: Array<{ label: string; value: string; href?: string }> = [];
+  // Collect all content events from won journeys
+  const contentCounts = new Map<string, { count: number; deals: Set<string> }>();
+  const contentEvidence: EvidenceItem[] = [];
 
-  for (const [personId, personEvents] of eventsByPerson) {
-    // Sort by timestamp descending to find most recent
-    const sorted = personEvents
-      .slice()
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  for (const ev of events) {
+    if (!wonContactIds.has(ev.personId)) continue;
+    if (ev.type !== "blog_post_viewed" && ev.type !== "case_study_viewed") continue;
 
-    // Find the most recent email_received
-    const lastReceived = sorted.find((e) => e.type === "email_received");
-    if (!lastReceived) continue;
+    const title =
+      (ev.metadata.articleTitle as string) ??
+      (ev.metadata.caseStudyTitle as string) ??
+      ev.description;
 
-    // Check if there's any email_sent AFTER that received email
-    const hasSentAfter = sorted.some(
-      (e) =>
-        e.type === "email_sent" &&
-        e.timestamp.localeCompare(lastReceived.timestamp) > 0,
-    );
-    if (hasSentAfter) continue;
+    const existing = contentCounts.get(title);
+    if (existing) {
+      existing.count++;
+      existing.deals.add(ev.personId);
+    } else {
+      contentCounts.set(title, { count: 1, deals: new Set([ev.personId]) });
+    }
 
-    // This person is waiting for a reply
-    const person = people.find((p) => p.id === personId);
-    if (!person) continue;
-
-    const company = companies.find((c) => c.id === person.companyId);
-    const waitDays = daysBetween(new Date(lastReceived.timestamp), NOW);
-
-    waiting.push({
-      label: `${person.name}${company ? ` (${company.name})` : ""}`,
-      value: `Waiting ${humanDuration(waitDays)}`,
-      href: `/leads/${person.id}`,
+    // Find the deal's company for evidence
+    const deal = wonDeals.find((d) => d.primaryContactId === ev.personId);
+    contentEvidence.push({
+      date: formatDate(ev.timestamp),
+      description: `${title} — ${deal?.companyName ?? ""}`,
+      href: `/leads/${ev.personId}`,
     });
   }
 
-  // Sort by wait time (longest first) based on the value text
-  waiting.sort((a, b) => {
-    // Extract number from "Waiting X days/weeks"
-    const numA = parseInt(a.value.match(/\d+/)?.[0] ?? "0", 10);
-    const numB = parseInt(b.value.match(/\d+/)?.[0] ?? "0", 10);
-    return numB - numA;
-  });
+  // Sort by count descending
+  const sorted = Array.from(contentCounts.entries())
+    .sort((a, b) => b[1].count - a[1].count);
+
+  if (sorted.length === 0) {
+    return {
+      type: "won_content",
+      title: "Content in Won Journeys",
+      summary: "No content interactions found in won deal journeys.",
+    };
+  }
+
+  const topTitle = sorted[0][0];
+  const topCount = sorted[0][1].count;
+  const wonRevenue = wonDeals.reduce((sum, d) => sum + d.value, 0);
 
   return {
-    type: "waiting",
-    title: "Leads waiting for a reply",
-    summary:
-      waiting.length > 0
-        ? `${waiting.length} lead${waiting.length === 1 ? "" : "s"} waiting for a response.`
-        : "No leads are currently waiting for a reply.",
-    items: waiting,
+    type: "won_content",
+    title: "Content in Won Journeys",
+    summary: `"${topTitle}" appeared ${topCount} time${topCount === 1 ? "" : "s"} across ${sorted[0][1].deals.size} won deal${sorted[0][1].deals.size === 1 ? "" : "s"}. ${wonDeals.length} deals totalling ${formatMoney(wonRevenue)} in won revenue.`,
+    details: {
+      "Top content": topTitle,
+      "Appearances": topCount,
+      "Won deals": wonDeals.length,
+      "Won revenue": formatMoney(wonRevenue),
+    },
+    items: sorted.map(([title, data]) => ({
+      label: title,
+      value: `${data.count}× across ${data.deals.size} deal${data.deals.size === 1 ? "" : "s"}`,
+    })),
+    evidence: contentEvidence.length > 0 ? contentEvidence : undefined,
   };
 }
 
@@ -446,8 +501,8 @@ export function askInbound(query: string): AskAnswer {
   const conversionResult = tryConversionRate(trimmed);
   if (conversionResult) return conversionResult;
 
-  const waitingResult = tryWaitingLeads(trimmed);
-  if (waitingResult) return waitingResult;
+  const wonContentResult = tryWonContent(trimmed);
+  if (wonContentResult) return wonContentResult;
 
   // Unrecognized query
   return promptChipsAnswer();

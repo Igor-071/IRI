@@ -8,6 +8,7 @@ import {
   MoneyValue,
   JourneyPathDisplay,
 } from "@/components/domain";
+import { getDisplayStage } from "@/lib/attribution/derived";
 import { getConversionLabel } from "@/lib/config/conversions";
 import {
   getCompanyById,
@@ -87,7 +88,7 @@ const columns: ColumnDef<Person, unknown>[] = [
   {
     id: "stage",
     header: "Stage",
-    cell: ({ row }) => <StageBadge stage={row.original.displayStage} />,
+    cell: ({ row }) => <StageBadge stage={getDisplayStage(row.original.id)} />,
     enableSorting: false,
   },
   {

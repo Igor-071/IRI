@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useMemo, useCallback } from "react";
 import type { AttributionModel, AcquisitionSource } from "@/types";
 import { AnalyticsLayout } from "@/components/layout";
+import { DateRangeSelector } from "@/components/domain/date-range-selector";
 import { getAttributionMetrics } from "@/lib/metrics/attribution-metrics";
 import { AttributionModelSelector } from "@/components/features/attribution/attribution-model-selector";
 import { AttributionKpiStrip } from "@/components/features/attribution/attribution-kpi-strip";
@@ -60,6 +61,7 @@ function AttributionContent() {
     <AnalyticsLayout
       title="Attribution"
       subtitle="Connect marketing activity to pipeline and revenue."
+      actions={<DateRangeSelector />}
     >
       <div className="flex flex-col gap-6">
         <AttributionModelSelector value={model} onChange={setModel} />

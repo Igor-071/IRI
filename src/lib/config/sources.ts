@@ -11,49 +11,49 @@ export const sourceConfig: Record<AcquisitionSource, SourceConfig> = {
   google_organic: {
     label: "Google Organic",
     shortLabel: "Google",
-    colorClass: "text-chart-2",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   google_ads: {
     label: "Google Ads",
     shortLabel: "Ads",
-    colorClass: "text-chart-3",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   linkedin_organic: {
     label: "LinkedIn Organic",
     shortLabel: "LinkedIn",
-    colorClass: "text-chart-2",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   linkedin_ads: {
     label: "LinkedIn Ads",
     shortLabel: "LI Ads",
-    colorClass: "text-chart-3",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   meta: {
     label: "Meta",
     shortLabel: "Meta",
-    colorClass: "text-chart-2",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   referral: {
     label: "Referral (web)",
     shortLabel: "Referral",
-    colorClass: "text-dessert",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   event: {
     label: "Event",
     shortLabel: "Event",
-    colorClass: "text-dessert",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   email: {
     label: "Email",
     shortLabel: "Email",
-    colorClass: "text-muted-foreground",
+    colorClass: "text-foreground",
     isMarketingTouch: true,
   },
   direct: {
@@ -65,15 +65,19 @@ export const sourceConfig: Record<AcquisitionSource, SourceConfig> = {
   unknown: {
     label: "Unknown",
     shortLabel: "Unknown",
-    colorClass: "text-warning",
+    colorClass: "text-muted-foreground",
     isMarketingTouch: false,
   },
 };
 
 export function getSourceLabel(source: AcquisitionSource): string {
-  return sourceConfig[source].label;
+  const cfg = sourceConfig[source];
+  if (!cfg) return source;
+  return cfg.label;
 }
 
 export function isMarketingTouch(source: AcquisitionSource): boolean {
-  return sourceConfig[source].isMarketingTouch;
+  const cfg = sourceConfig[source];
+  if (!cfg) return false;
+  return cfg.isMarketingTouch;
 }

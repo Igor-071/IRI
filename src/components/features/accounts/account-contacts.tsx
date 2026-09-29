@@ -9,6 +9,7 @@ import {
   getOpportunityByPersonId,
 } from "@/lib/data/repositories";
 import { SourceBadge } from "@/components/domain/source-badge";
+import { getFirstTouchSource } from "@/lib/attribution/derived";
 import { DateTime } from "@/components/domain/date-time";
 import { Avatar, AvatarFallback } from "@/components/ui/atoms/avatar";
 import { Badge } from "@/components/ui/atoms/badge";
@@ -59,7 +60,7 @@ function ContactCard({ person }: { person: Person }) {
       </div>
 
       <div className="hidden shrink-0 items-center gap-3 sm:flex">
-        <SourceBadge source={person.firstTouchSource} />
+        <SourceBadge source={getFirstTouchSource(person.id)} />
         {lastActivity && (
           <DateTime date={lastActivity} format="relative" className="text-xs" />
         )}

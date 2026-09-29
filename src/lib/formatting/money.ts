@@ -3,7 +3,9 @@ import { CURRENCY, LOCALE } from "@/lib/config/constants";
 export function formatMoney(value: number): string {
   if (value >= 1_000_000) {
     const millions = value / 1_000_000;
-    const formatted = millions % 1 === 0 ? millions.toString() : millions.toFixed(1);
+    if (millions % 1 === 0) return `€${millions}M`;
+    // Use 2 decimal places and strip trailing zeros: 1.25M, 1.5M
+    const formatted = millions.toFixed(2).replace(/0+$/, "");
     return `€${formatted}M`;
   }
   if (value >= 1_000) {

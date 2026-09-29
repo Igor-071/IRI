@@ -11,6 +11,7 @@ import {
   DateTime,
 } from "@/components/domain";
 import { getLastMarketingTouch } from "@/lib/attribution/touchpoints";
+import { getFirstTouchSource, getDisplayStage } from "@/lib/attribution/derived";
 import { getConversionLabel } from "@/lib/config/conversions";
 import {
   getCompanyById,
@@ -43,7 +44,7 @@ const columns: ColumnDef<Person, unknown>[] = [
     id: "firstTouch",
     header: "First Touch",
     cell: ({ row }) => (
-      <SourceBadge source={row.original.firstTouchSource} />
+      <SourceBadge source={getFirstTouchSource(row.original.id)} />
     ),
     enableSorting: false,
   },
@@ -72,7 +73,7 @@ const columns: ColumnDef<Person, unknown>[] = [
   {
     id: "stage",
     header: "Stage",
-    cell: ({ row }) => <StageBadge stage={row.original.displayStage} />,
+    cell: ({ row }) => <StageBadge stage={getDisplayStage(row.original.id)} />,
     enableSorting: false,
   },
   {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { AskAnswer as AskAnswerType } from "@/lib/ask";
+import type { AskAnswer as AskAnswerType, EvidenceItem } from "@/lib/ask";
 
 interface AskAnswerProps {
   answer: AskAnswerType;
@@ -89,6 +89,34 @@ export function AskAnswer({ answer, onChipClick }: AskAnswerProps) {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Evidence list */}
+      {answer.evidence && answer.evidence.length > 0 && (
+        <div className="space-y-1.5">
+          <span className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+            Evidence
+          </span>
+          <ul className="space-y-1">
+            {answer.evidence.map((ev, i) => (
+              <li key={i} className="flex items-baseline gap-2 text-sm">
+                <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                  {ev.date}
+                </span>
+                {ev.href ? (
+                  <Link
+                    href={ev.href}
+                    className="text-foreground hover:text-primary transition-colors"
+                  >
+                    {ev.description}
+                  </Link>
+                ) : (
+                  <span className="text-foreground">{ev.description}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
       {/* CTA button */}

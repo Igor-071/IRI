@@ -10,7 +10,7 @@ describe("formatMoney", () => {
   });
 
   it("formats millions with M suffix", () => {
-    expect(formatMoney(1250000)).toBe("€1.3M");
+    expect(formatMoney(1250000)).toBe("€1.25M");
   });
 
   it("formats exact millions without decimal", () => {

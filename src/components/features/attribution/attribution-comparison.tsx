@@ -44,7 +44,7 @@ export function AttributionComparison({
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
           {MODELS.map((model) => {
-            const source = resolvePersonSource(person, model.key);
+            const source = resolvePersonSource(person.id, model.key);
             const isActive = activeModel === model.key;
 
             return (

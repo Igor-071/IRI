@@ -194,6 +194,7 @@ function getSelfReportedByPersonIdMap(): Map<string, SelfReportedAttribution> {
 // ---------------------------------------------------------------------------
 
 import { getAttributionStatus } from "@/lib/attribution/status";
+import { getFirstTouchSource, getDisplayStage, getLeadPeople } from "@/lib/attribution/derived";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -263,19 +264,20 @@ export function getLeads(
     owner?: string;
   }
 ): Person[] {
-  if (!filters) return [...people];
+  const leadPeople = getLeadPeople();
+  if (!filters) return [...leadPeople];
 
-  return people.filter((person) => {
-    if (filters.stage && person.displayStage !== filters.stage) {
+  return leadPeople.filter((person) => {
+    if (filters.stage && getDisplayStage(person.id) !== filters.stage) {
       return false;
     }
 
-    if (filters.source && person.firstTouchSource !== filters.source) {
+    if (filters.source && getFirstTouchSource(person.id) !== filters.source) {
       return false;
     }
 
     if (filters.attribution) {
-      if (getAttributionStatus(person) !== filters.attribution) return false;
+      if (getAttributionStatus(person.id) !== filters.attribution) return false;
     }
 
     if (filters.owner && person.ownerId !== filters.owner) {

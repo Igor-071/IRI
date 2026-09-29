@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Person } from "@/types";
 import { Avatar, AvatarFallback } from "@/components/ui/atoms/avatar";
 import { StageBadge } from "@/components/domain/stage-badge";
+import { getDisplayStage } from "@/lib/attribution/derived";
 import { cn } from "@/lib/utils";
 import { Users } from "lucide-react";
 
@@ -51,7 +52,7 @@ export function RelatedContacts({
                 {contact.title}
               </p>
             </div>
-            <StageBadge stage={contact.displayStage} />
+            <StageBadge stage={getDisplayStage(contact.id)} />
           </Link>
         ))}
       </div>

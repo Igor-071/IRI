@@ -27,10 +27,8 @@ export const vectorPeople: Person[] = [
     title: "Director of Digital Transformation",
     companyId: "company_vector",
     ownerId: "usr_igor",
-    displayStage: "qualified",
-    firstTouchSource: "unknown",
+    leadStatus: "qualified",
     conversionMechanism: "contact_form",
-    conversionChannel: "direct",
     createdAt: "2026-09-09T14:20:00+02:00",
   },
 ];

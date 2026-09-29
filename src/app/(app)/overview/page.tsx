@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { AnalyticsLayout } from "@/components/layout";
+import { DateRangeSelector } from "@/components/domain/date-range-selector";
 import { KpiStrip } from "@/components/features/overview/kpi-strip";
 import { PipelineBySource } from "@/components/features/overview/pipeline-by-source";
 import { DataQualityPanel } from "@/components/features/overview/data-quality-panel";
@@ -11,6 +13,11 @@ export default function OverviewPage() {
     <AnalyticsLayout
       title="Overview"
       subtitle="Inbound performance across acquisition, conversion, pipeline and revenue."
+      actions={
+        <Suspense>
+          <DateRangeSelector />
+        </Suspense>
+      }
     >
       <div className="flex flex-col gap-6">
         {/* KPI strip */}

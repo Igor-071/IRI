@@ -1,6 +1,8 @@
-import { people, events, ledger, companies } from "@/data";
+import { events, ledger, companies } from "@/data";
 import { NOW } from "@/lib/config/constants";
 import type { AcquisitionSource } from "@/types";
+import { resolvePersonSource } from "./attribution-metrics";
+import { getLeadPeople, getDisplayStage } from "@/lib/attribution/derived";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -75,10 +77,11 @@ export function getAvgFirstResponse(): number {
 // ---------------------------------------------------------------------------
 
 export function getFunnelCounts(): [number, number, number, number, number] {
-  const leads = people.length;
+  const leadPeople = getLeadPeople();
+  const leads = leadPeople.length;
 
-  const qualified = people.filter((p) =>
-    QUALIFIED_STAGES.has(p.displayStage),
+  const qualified = leadPeople.filter((p) =>
+    QUALIFIED_STAGES.has(getDisplayStage(p.id)),
   ).length;
 
   const opportunities = ledger.length;
@@ -112,10 +115,11 @@ export function getOverviewMetrics(): OverviewMetrics {
 
   const wonRevenue = wonEntries.reduce((sum, e) => sum + e.value, 0);
 
-  const leadToOpportunity = ledger.length / people.length;
+  const leadPeople = getLeadPeople();
+  const leadToOpportunity = ledger.length / leadPeople.length;
 
   return {
-    inboundLeads: people.length,
+    inboundLeads: leadPeople.length,
     opportunities: ledger.length,
     openPipeline,
     wonRevenue,
@@ -132,6 +136,7 @@ export function getOverviewMetrics(): OverviewMetrics {
 export function getWaitingLeads(): WaitingLead[] {
   const companiesById = new Map(companies.map((c) => [c.id, c]));
   const nowMs = NOW.getTime();
+  const leadPeople = getLeadPeople();
 
   // Group events by personId
   const eventsByPerson = new Map<string, typeof events>();
@@ -146,7 +151,7 @@ export function getWaitingLeads(): WaitingLead[] {
 
   const waiting: WaitingLead[] = [];
 
-  for (const person of people) {
+  for (const person of leadPeople) {
     const personEvents = eventsByPerson.get(person.id);
     if (!personEvents) continue;
 
@@ -194,10 +199,8 @@ export function getPipelineBySource(): PipelineBySourceEntry[] {
 
   const map = new Map<AcquisitionSource, number>();
   for (const entry of openEntries) {
-    map.set(
-      entry.firstTouchSource,
-      (map.get(entry.firstTouchSource) ?? 0) + entry.value,
-    );
+    const source = resolvePersonSource(entry.primaryContactId, "first_touch");
+    map.set(source, (map.get(source) ?? 0) + entry.value);
   }
 
   return Array.from(map.entries())
@@ -214,12 +217,13 @@ export function getRevenueBySource(): RevenueBySourceEntry[] {
 
   const map = new Map<AcquisitionSource, { value: number; count: number }>();
   for (const entry of wonEntries) {
-    const existing = map.get(entry.firstTouchSource);
+    const source = resolvePersonSource(entry.primaryContactId, "first_touch");
+    const existing = map.get(source);
     if (existing) {
       existing.value += entry.value;
       existing.count += 1;
     } else {
-      map.set(entry.firstTouchSource, { value: entry.value, count: 1 });
+      map.set(source, { value: entry.value, count: 1 });
     }
   }
 

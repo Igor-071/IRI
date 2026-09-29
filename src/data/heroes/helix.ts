@@ -19,10 +19,8 @@ export const helixPeople: Person[] = [
     title: "COO",
     companyId: "company_helix",
     ownerId: "usr_elma",
-    displayStage: "lost",
-    firstTouchSource: "linkedin_ads",
+    leadStatus: "qualified",
     conversionMechanism: "contact_form",
-    conversionChannel: "linkedin_ads",
     createdAt: "2026-05-12T16:00:00+02:00",
   },
 ];

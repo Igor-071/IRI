@@ -25,7 +25,20 @@ import {
 } from "@/components/ui/atoms/dialog";
 import { Button } from "@/components/ui/atoms/button";
 import { cn } from "@/lib/utils";
+import { formatDateTime } from "@/lib/formatting/dates";
 import { HelpCircle, User, MessageSquare } from "lucide-react";
+
+const SOURCE_SYSTEM_LABELS: Record<string, string> = {
+  website_tracker: "Website Tracker",
+  hubspot: "HubSpot",
+  sales_tracker: "Sales Tracker",
+  cal_com: "Cal.com",
+  resend: "Resend",
+  email: "Email",
+  kit: "Kit",
+  ghost: "Ghost",
+  calendar: "Calendar",
+};
 
 const CONVERSION_MECHANISM_LABELS: Record<string, string> = {
   contact_form: "Contact Form",
@@ -51,6 +64,28 @@ interface TouchpointSectionProps {
   touchpoint: Touchpoint | undefined;
   isConversion?: boolean;
   unknownMessage?: string;
+}
+
+function getSourceSystemLabel(system: string | undefined): string {
+  if (!system) return "—";
+  return SOURCE_SYSTEM_LABELS[system] ?? system.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function getRationale(label: string, touchpoint: Touchpoint): string {
+  const sourceName = sourceConfig[touchpoint.source].label;
+  if (label === "First Touch") {
+    return `This was the earliest detected marketing interaction. The visitor arrived via ${sourceName}.`;
+  }
+  if (label === "Last Marketing Touch") {
+    return `This was the most recent marketing interaction before conversion. The visitor returned via ${sourceName}.`;
+  }
+  if (label === "Conversion Touch") {
+    const mech = touchpoint.conversionMechanism
+      ? CONVERSION_MECHANISM_LABELS[touchpoint.conversionMechanism] ?? touchpoint.conversionMechanism
+      : "an action";
+    return `The lead converted through ${mech} during a ${sourceName} session.`;
+  }
+  return "";
 }
 
 function TouchpointSection({
@@ -97,10 +132,16 @@ function TouchpointSection({
       </div>
 
       <div className="flex items-center gap-2">
-        {isConversion && touchpoint.conversionMechanism ? (
+        {isConversion ? (
           <span className="text-sm font-medium text-foreground">
-            {CONVERSION_MECHANISM_LABELS[touchpoint.conversionMechanism] ??
-              touchpoint.conversionMechanism}
+            {sourceCfg.label}
+            {touchpoint.conversionMechanism && (
+              <span className="text-muted-foreground font-normal">
+                {" / "}
+                {CONVERSION_MECHANISM_LABELS[touchpoint.conversionMechanism] ??
+                  touchpoint.conversionMechanism}
+              </span>
+            )}
           </span>
         ) : (
           <SourceBadge source={touchpoint.source} />
@@ -126,14 +167,19 @@ function TouchpointSection({
           <DialogHeader>
             <DialogTitle>{label} — Evidence</DialogTitle>
           </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {getRationale(label, touchpoint)}
+          </p>
           <div className="flex flex-col gap-3 text-sm">
             <DetailRow label="Source" value={sourceCfg.label} />
-            <DetailRow label="Timestamp" value={touchpoint.timestamp} />
-            <DetailRow label="Source System" value={touchpoint.sessionId} />
+            <DetailRow label="Timestamp" value={formatDateTime(touchpoint.timestamp)} />
+            <DetailRow label="Source System" value={getSourceSystemLabel(touchpoint.sourceSystem)} />
             {touchpoint.referrer && (
               <DetailRow label="Referrer" value={touchpoint.referrer} />
             )}
-            <DetailRow label="Landing Page" value={touchpoint.landingPage} />
+            {touchpoint.landingPage && (
+              <DetailRow label="Landing Page" value={touchpoint.landingPage} />
+            )}
             {touchpoint.campaign && (
               <DetailRow label="Campaign" value={touchpoint.campaign} />
             )}
@@ -185,7 +231,7 @@ export function AttributionSummary({
     [personId]
   );
   const status = useMemo(
-    () => (person ? getAttributionStatus(person) : "unknown" as const),
+    () => (person ? getAttributionStatus(person.id) : "unknown" as const),
     [person]
   );
 
@@ -198,8 +244,13 @@ export function AttributionSummary({
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       {/* Status */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2">
         <AttributionStatusBadge status={status} />
+        {status === "unknown" && (
+          <p className="text-sm font-medium text-muted-foreground">
+            No known marketing interaction was identified before this conversion.
+          </p>
+        )}
       </div>
 
       {/* Three-column attribution */}

@@ -39,6 +39,16 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+function weightedPick<T>(items: T[], weights: number[]): T {
+  const total = weights.reduce((s, w) => s + w, 0);
+  let r = rand() * total;
+  for (let i = 0; i < items.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return items[i];
+  }
+  return items[items.length - 1];
+}
+
 // ── Pools ───────────────────────────────────────────────────────────────────
 
 const FIRST_NAMES = [
@@ -137,7 +147,7 @@ type Source = "google_organic" | "google_ads" | "linkedin_organic" | "linkedin_a
   | "referral" | "event" | "meta" | "email" | "unknown";
 
 type ConvMech = "contact_form" | "book_a_call" | "email_inquiry" | "newsletter_signup";
-type AttrStatus = "full" | "partial" | "unknown";
+type AttrStatus = "full" | "partial_a" | "partial_b" | "unknown";
 
 const OWNERS = ["usr_igor", "usr_elma", "usr_adnan"];
 
@@ -190,40 +200,79 @@ const LEDGER_REFS: LedgerRef[] = [
 ];
 
 // ── Source distribution targets ─────────────────────────────────────────────
-
-// Hero leads (12) by source:
-// google_organic: 1 (John), google_ads: 1 (Emma), linkedin_organic: 2 (Sarah, Ingrid),
-// linkedin_ads: 1 (David), direct: 2 (Thomas, Michael), event: 1 (Marta),
-// meta: 3 (Felix,Nina,Tobias), unknown: 1 (Anna)
-// Non-hero ledger (19) by source:
-// google_organic: 4, google_ads: 4, linkedin_organic: 3, linkedin_ads: 2,
-// referral: 4, event: 1, meta: 1, email: 0, unknown: 0
-// Remaining no-opp leads (49 = 80 - 12 - 19):
-// google_organic: 12, google_ads: 10, linkedin_organic: 7, linkedin_ads: 5,
-// referral: 2, event: 2, meta: 1, email: 2, unknown: 8
+// §9.3 first-touch distribution (80 leads):
+//   Google Organic: 17, Google Ads: 15, LinkedIn Organic: 12, LinkedIn Ads: 8,
+//   Referral: 6, Event: 4, Meta: 5, Email: 2, Unknown: 11
+//
+// Hero leads (11 with lead_created — Michael Brown has none) by source:
+//   google_organic: 1 (John), google_ads: 1 (Emma), linkedin_organic: 2 (Sarah, Ingrid),
+//   linkedin_ads: 1 (David), direct: 1 (Thomas), event: 1 (Marta),
+//   meta: 3 (Felix,Nina,Tobias), unknown: 1 (Anna)
+//   → heroes with marketing first touch: 9 full
+//   → Thomas: partial(a), Anna: unknown
+//
+// Non-hero ledger (19) by source (all full — marketing session + conversion):
+//   google_organic: 4, google_ads: 4, linkedin_organic: 3, linkedin_ads: 2,
+//   referral: 4, event: 1, meta: 1, email: 0, unknown: 0
+//
+// Remaining no-opp leads (50 = 80 - 11 - 19):
+//   google_organic: 12, google_ads: 10, linkedin_organic: 7, linkedin_ads: 5,
+//   referral: 2, event: 2, meta: 1, email: 2, unknown: 9
 
 const NO_OPP_SOURCE_COUNTS: Record<Source, number> = {
   google_organic: 12,
   google_ads: 10,
   linkedin_organic: 7,
   linkedin_ads: 5,
-  referral: 2,
+  referral: 2,       // §9.3: 6 total = 0 hero + 4 ledger + 2 no-opp
   event: 2,
   meta: 1,
   email: 2,
-  unknown: 8,
+  unknown: 9,         // 3 partial(a) + 6 unknown
 };
 
 // ── Attribution status targets ──────────────────────────────────────────────
 // Total: 58 full, 15 partial, 7 unknown = 80
-// Heroes: full=8 (John, Sarah, Emma, Ingrid, David, Marta, Felix, Nina, Tobias... wait)
-// Let me carefully assign:
-// John = Full, Sarah = Full, Emma = Full, Ingrid = Full, David = Full,
-// Marta = Full, Felix = Full, Nina = Full, Tobias = Full → 9 full heroes
-// Thomas = Partial, Anna = Unknown → 1 partial, 1 unknown hero
-// Total heroes: 9 full + 1 partial + 1 unknown = 11
+// Heroes: 9 full + 1 partial(a) (Thomas) + 1 unknown (Anna) = 11
+// Ledger (19): all have marketing sessions + conversion → 19 full
+// Need from no-opp (50): 58-9-19 = 30 full, 15-1 = 14 partial, 7-1 = 6 unknown
+//
+// §9.3 §5.4 partial split:
+//   Partial (a): no marketing touch + self-reported/relationship → first touch = unknown
+//     Atlas (hero) + 3 generated = 4 total partial(a)
+//   Partial (b): marketing touch + no tracked conversion → first touch = marketing source
+//     11 generated = 11 total partial(b)
+//   Total partial: 4 + 11 = 15 ✓
+//
+// Source allocation:
+//   41 marketing no-opp sources (12+10+7+5+2+2+1+2) → 30 full + 11 partial(b)
+//   9 unknown no-opp sources → 3 partial(a) + 6 unknown
 
-// Need from generated: 49 full + 14 partial + 6 unknown = 69
+// ── Multi-touch source pairs ────────────────────────────────────────────────
+// When a full lead needs a different marketing source for middle sessions
+const MULTI_TOUCH_PAIRS: Record<string, Source[]> = {
+  google_organic: ["linkedin_organic", "email"],
+  google_ads: ["google_organic", "linkedin_ads"],
+  linkedin_organic: ["google_organic", "email"],
+  linkedin_ads: ["linkedin_organic", "google_ads"],
+  referral: ["google_organic", "linkedin_organic"],
+  event: ["google_organic", "linkedin_organic"],
+  meta: ["google_organic", "linkedin_ads"],
+  email: ["google_organic", "linkedin_organic"],
+};
+
+// ── Landing pages per source ────────────────────────────────────────────────
+const SOURCE_LANDING_PAGES: Record<string, string[]> = {
+  google_organic: ["/blog/product-strategy-ai-era", "/blog/building-ai-native-products", "/services/ai-product-development", "/services/digital-transformation"],
+  google_ads: ["/services/ai-product-development", "/services/product-strategy", "/services/software-engineering", "/engagement"],
+  linkedin_organic: ["/blog/scaling-product-teams-2026", "/blog/digital-transformation-without-theatre", "/work", "/about"],
+  linkedin_ads: ["/services/product-strategy", "/services/digital-transformation", "/engagement"],
+  referral: ["/", "/services", "/work", "/about"],
+  event: ["/", "/services/ai-product-development", "/engagement"],
+  meta: ["/", "/services", "/work"],
+  email: ["/blog/roi-design-led-development", "/blog/prototype-to-production", "/services/ai-product-development"],
+  direct: ["/", "/contact", "/services", "/about"],
+};
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -245,10 +294,8 @@ interface GenPerson {
   title: string;
   companyId: string;
   ownerId: string;
-  displayStage: string;
-  firstTouchSource: string;
+  leadStatus: string;
   conversionMechanism: string;
-  conversionChannel: string;
   selfReportedSource?: string;
   createdAt: string;
 }
@@ -309,7 +356,11 @@ function formatDate(d: Date): string {
   return d.toISOString().split("T")[0];
 }
 
-function sourceToMedium(source: Source): string {
+function toTimestamp(d: Date): string {
+  return d.toISOString().replace("Z", "+02:00").replace(/\.\d{3}/, "");
+}
+
+function sourceToMedium(source: Source | "direct"): string {
   if (source === "google_ads" || source === "linkedin_ads" || source === "meta") return "cpc";
   if (source === "google_organic") return "organic";
   if (source === "linkedin_organic") return "social";
@@ -319,14 +370,14 @@ function sourceToMedium(source: Source): string {
   return "none";
 }
 
-function sourceToReferrer(source: Source): string {
+function sourceToReferrer(source: Source | "direct"): string {
   if (source === "google_organic" || source === "google_ads") return "google.com";
   if (source === "linkedin_organic" || source === "linkedin_ads") return "linkedin.com";
   if (source === "meta") return rand() > 0.5 ? "facebook.com" : "instagram.com";
   return "";
 }
 
-function sourceToCampaign(source: Source): string | undefined {
+function sourceToCampaign(source: Source | "direct"): string | undefined {
   const campaigns: Record<string, string[]> = {
     google_ads: ["camp_ai_transformation_q3", "camp_enterprise_ai_search", "camp_ai_healthcare"],
     linkedin_ads: ["camp_product_innovation_europe", "camp_nordics_expansion"],
@@ -371,6 +422,11 @@ function convMechToSourceSystem(mech: ConvMech): string {
   }
 }
 
+function pickLandingPage(source: string): string {
+  const pages = SOURCE_LANDING_PAGES[source] ?? PAGES;
+  return pick(pages);
+}
+
 // ── Response time pool ──────────────────────────────────────────────────────
 // Target mean: 2h 18m (138 min). Pre-computed to hit exact average.
 // Heroes contribute: 17, 45, 22, 45, 50, 90, 75 = 344 min from 7 heroes with responses
@@ -400,23 +456,258 @@ function getResponseTime(): number | null {
 
 // ── Stage assignment helpers ────────────────────────────────────────────────
 
-function displayStageForOpp(stage: string): string {
-  return stage;
+// leadStatus for opp-linked people: always "qualified" (they have opportunities)
+function leadStatusForOpp(): string {
+  return "qualified";
 }
 
 // Funnel: 80 leads → 44 qualified → 26 opp → 17 proposal → 10 won
 // Qualified+ breakdown:
-//   26 opp leads (all qualified+) + Michael Brown (proposal, non-opp) + Sarah Johnson (proposal, non-opp) = 28 hero/opp
-//   Need from 49 generated no-opp leads: 44 - 28 = 16 qualified
-//   3 waiting leads are "contacted" (not qualified)
-//   Remaining 49 - 3 - 16 = 30 non-qualified non-waiting leads
+//   26 opp leads (all qualified+) → leadStatus "qualified"
+//   Michael Brown is NOT a lead (no lead_created event)
+//   Sarah Johnson: leadStatus "qualified"
+//   Need from 50 generated no-opp leads: 44 - 26 - 1 (Sarah) = 17 qualified
+//   3 waiting leads are "contacted"
+//   Remaining 50 - 3 - 17 = 30 non-qualified non-waiting leads
 const noOppStagePool: string[] = [];
-for (let i = 0; i < 16; i++) noOppStagePool.push("qualified");
+for (let i = 0; i < 17; i++) noOppStagePool.push("qualified");
 for (let i = 0; i < 10; i++) noOppStagePool.push("new");
-for (let i = 0; i < 5; i++) noOppStagePool.push("contacted");
-for (let i = 0; i < 15; i++) noOppStagePool.push("disqualified");
+for (let i = 0; i < 6; i++) noOppStagePool.push("contacted");
+for (let i = 0; i < 14; i++) noOppStagePool.push("disqualified");
 const shuffledStages = shuffle(noOppStagePool);
 let stageIdx = 0;
+
+// ── Multi-session journey builder ───────────────────────────────────────────
+
+interface JourneySession {
+  source: Source | "direct";
+  hasConversion: boolean;
+  convMech?: ConvMech;
+  dayOffset: number; // days before conversion date (0 = conversion day)
+}
+
+/**
+ * Build a multi-session journey for a lead.
+ *
+ * Full leads: 2-6 sessions over 3-21 days, first session = assigned marketing source,
+ * ~40% get a different marketing source in a middle session,
+ * ~50% convert in Direct sessions.
+ *
+ * Partial(b): 1-3 marketing sessions, NO conversion event.
+ *
+ * Partial(a): 1 direct session with conversion.
+ *
+ * Unknown: 1 direct session with conversion.
+ */
+function buildJourney(
+  firstTouchSource: Source,
+  attrStatus: AttrStatus,
+  convMech: ConvMech,
+): JourneySession[] {
+  if (attrStatus === "partial_a" || attrStatus === "unknown") {
+    // Single direct session with conversion
+    return [{ source: "direct", hasConversion: true, convMech, dayOffset: 0 }];
+  }
+
+  if (attrStatus === "partial_b") {
+    // 1-3 marketing sessions, NO conversion event
+    const sessionCount = weightedPick([1, 2, 3], [40, 40, 20]);
+    const sessionsOut: JourneySession[] = [];
+    for (let s = 0; s < sessionCount; s++) {
+      const dayOffset = (sessionCount - 1 - s) * randInt(2, 7);
+      sessionsOut.push({
+        source: firstTouchSource,
+        hasConversion: false,
+        dayOffset,
+      });
+    }
+    return sessionsOut;
+  }
+
+  // Full lead: multi-session journey
+  // Use more 3+ session journeys to allow room for different middle sources
+  const sessionCount = weightedPick([2, 3, 4, 5, 6], [15, 35, 25, 15, 10]);
+  const journeySpanDays = randInt(3, 21);
+  const convertInDirect = rand() < 0.5;
+
+  // For multi-touch diversity: place a different marketing source in the
+  // LAST non-conversion session so getLastMarketingTouch returns a different
+  // source from getFirstTouch. For 2-session leads, the second session is
+  // already the conversion — to get different first/last, make the conversion
+  // session use a different marketing source (when not converting in Direct).
+  const wantDifferentLastTouch = rand() < 0.45;
+
+  const sessionsOut: JourneySession[] = [];
+
+  // Compute day offsets: spread sessions across journey span
+  const dayOffsets: number[] = [];
+  dayOffsets.push(journeySpanDays); // first session (earliest)
+  dayOffsets.push(0); // conversion session (latest)
+  for (let m = 0; m < sessionCount - 2; m++) {
+    dayOffsets.push(randInt(1, journeySpanDays - 1));
+  }
+  dayOffsets.sort((a, b) => b - a); // descending: earliest first
+
+  // Find the index of the last non-conversion session
+  const lastMiddleIdx = sessionCount >= 3 ? sessionCount - 2 : -1;
+
+  for (let s = 0; s < sessionCount; s++) {
+    const isFirst = s === 0;
+    const isLast = s === sessionCount - 1;
+
+    let source: Source | "direct";
+    if (isFirst) {
+      source = firstTouchSource;
+    } else if (isLast) {
+      // Conversion session
+      if (convertInDirect) {
+        source = "direct";
+      } else if (wantDifferentLastTouch && sessionCount === 2) {
+        // 2-session lead: conversion session uses different marketing source
+        const pairs = MULTI_TOUCH_PAIRS[firstTouchSource];
+        source = pairs ? pick(pairs) : firstTouchSource;
+      } else {
+        source = firstTouchSource;
+      }
+    } else if (s === lastMiddleIdx && wantDifferentLastTouch) {
+      // Last middle session: use a different marketing source
+      // This ensures getLastMarketingTouch returns something different
+      const pairs = MULTI_TOUCH_PAIRS[firstTouchSource];
+      source = pairs ? pick(pairs) : firstTouchSource;
+    } else {
+      // Other middle sessions: mix of direct and same source
+      source = rand() < 0.4 ? "direct" : firstTouchSource;
+    }
+
+    sessionsOut.push({
+      source,
+      hasConversion: isLast,
+      convMech: isLast ? convMech : undefined,
+      dayOffset: dayOffsets[s],
+    });
+  }
+
+  return sessionsOut;
+}
+
+/**
+ * Generate session + event records for a journey.
+ * Returns the lead date string (timestamp of conversion / last session).
+ */
+function emitJourney(
+  personId: string,
+  journeySessions: JourneySession[],
+  conversionDate: Date,
+): string {
+  let leadDateStr = "";
+
+  for (const js of journeySessions) {
+    const sessionDate = new Date(conversionDate.getTime() - js.dayOffset * 86400000);
+    const sessStartTime = new Date(
+      sessionDate.getTime() + randInt(8, 17) * 3600000 + randInt(0, 59) * 60000,
+    );
+    const sessDuration = randInt(120, 900);
+    const sessStartStr = toTimestamp(sessStartTime);
+
+    sessionCounter++;
+    const sessId = genId("sess", sessionCounter);
+
+    sessions.push({
+      id: sessId,
+      personId,
+      source: js.source === "unknown" ? "direct" : js.source,
+      medium: sourceToMedium(js.source),
+      startedAt: sessStartStr,
+      landingPage: pickLandingPage(js.source),
+      referrer: sourceToReferrer(js.source),
+      campaign: sourceToCampaign(js.source),
+      pageviews: randInt(2, 6),
+      duration: sessDuration,
+      sourceSystem: "website_tracker",
+    });
+
+    // session_started event
+    eventCounter++;
+    events.push({
+      id: genId("evt", eventCounter),
+      personId,
+      sessionId: sessId,
+      type: "session_started",
+      category: "acquisition",
+      timestamp: sessStartStr,
+      description: js.source === "direct" ? "Direct visit" : `${js.source} visit`,
+      metadata: {},
+      sourceSystem: "website_tracker",
+    });
+
+    // Page views (2-5 per session)
+    const pvCount = randInt(2, 5);
+    for (let p = 0; p < pvCount; p++) {
+      eventCounter++;
+      const pvTime = addMinutes(sessStartStr, (p + 1) * randInt(1, 4));
+      const pageType = rand();
+      let pageUrl: string;
+      let evtType: string;
+      let evtDesc: string;
+      if (pageType < 0.15) {
+        const title = pick(CONTENT_TITLES);
+        pageUrl = `/blog/${title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
+        evtType = "blog_post_viewed";
+        evtDesc = `Read: ${title}`;
+      } else if (pageType < 0.25) {
+        const cs = pick(CASE_STUDIES);
+        pageUrl = `/work/${cs.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}`;
+        evtType = "case_study_viewed";
+        evtDesc = `Viewed: ${cs}`;
+      } else {
+        pageUrl = pick(PAGES);
+        evtType = "page_viewed";
+        evtDesc = `Viewed ${pageUrl}`;
+      }
+      events.push({
+        id: genId("evt", eventCounter),
+        personId,
+        sessionId: sessId,
+        type: evtType,
+        category: "website",
+        timestamp: pvTime,
+        description: evtDesc,
+        metadata: { page: pageUrl },
+        sourceSystem: "website_tracker",
+      });
+    }
+
+    // Conversion event (only in the conversion session)
+    if (js.hasConversion && js.convMech) {
+      const convTime = addMinutes(sessStartStr, randInt(5, 20));
+      leadDateStr = convTime;
+
+      eventCounter++;
+      events.push({
+        id: genId("evt", eventCounter),
+        personId,
+        sessionId: sessId,
+        type: convMechToEventType(js.convMech),
+        category: "conversion",
+        timestamp: convTime,
+        description: `${js.convMech} conversion`,
+        metadata: { formType: js.convMech },
+        sourceSystem: convMechToSourceSystem(js.convMech),
+      });
+    }
+  }
+
+  // For partial(b) with no conversion, use the last session start as lead date
+  if (!leadDateStr) {
+    const lastSession = journeySessions[journeySessions.length - 1];
+    const lastDate = new Date(conversionDate.getTime() - lastSession.dayOffset * 86400000);
+    leadDateStr = toTimestamp(new Date(
+      lastDate.getTime() + randInt(8, 17) * 3600000 + randInt(0, 59) * 60000,
+    ));
+  }
+
+  return leadDateStr;
+}
 
 // ── Generate ledger company leads ───────────────────────────────────────────
 
@@ -435,14 +726,14 @@ for (const ref of LEDGER_REFS) {
   companies.push(company);
 
   const convMech = pickConvMech(ref.source);
-  const convChannel = ref.source === "unknown" || ref.source === "direct" as Source
-    ? "direct" : ref.source;
 
   // Lead date: createdAt minus some days for journey
   const oppDate = new Date(ref.createdAt + "T10:00:00+02:00");
-  const leadDate = new Date(oppDate.getTime() - randInt(7, 30) * 86400000);
-  const firstTouchDate = new Date(leadDate.getTime() - randInt(1, 14) * 86400000);
-  const leadDateStr = leadDate.toISOString().replace("Z", "+02:00").replace(/\.\d{3}/, "");
+  const conversionDate = new Date(oppDate.getTime() - randInt(7, 30) * 86400000);
+
+  // Build multi-session journey for ledger leads (all are full)
+  const journeySessions = buildJourney(ref.source, "full", convMech);
+  const leadDateStr = emitJourney(ref.contactId, journeySessions, conversionDate);
 
   personCounter++;
   const person: GenPerson = {
@@ -452,78 +743,11 @@ for (const ref of LEDGER_REFS) {
     title: ref.contactTitle,
     companyId: ref.companyId,
     ownerId: ref.ownerId,
-    displayStage: displayStageForOpp(ref.stage),
-    firstTouchSource: ref.source,
+    leadStatus: leadStatusForOpp(),
     conversionMechanism: convMech,
-    conversionChannel: convChannel,
     createdAt: leadDateStr,
   };
   people.push(person);
-
-  // Session
-  sessionCounter++;
-  const sessId = genId("sess", sessionCounter);
-  const sessStart = new Date(leadDate.getTime() - randInt(10, 60) * 60000);
-  const sessStartStr = sessStart.toISOString().replace("Z", "+02:00").replace(/\.\d{3}/, "");
-
-  sessions.push({
-    id: sessId,
-    personId: ref.contactId,
-    source: ref.source === "unknown" ? "direct" : ref.source,
-    medium: sourceToMedium(ref.source),
-    startedAt: sessStartStr,
-    landingPage: pick(PAGES),
-    referrer: sourceToReferrer(ref.source),
-    campaign: sourceToCampaign(ref.source),
-    pageviews: randInt(2, 6),
-    duration: randInt(180, 900),
-    sourceSystem: "website_tracker",
-  });
-
-  // Events: session_started, page views, conversion, lead_created, emails, meetings, opp stages
-  eventCounter++;
-  events.push({
-    id: genId("evt", eventCounter),
-    personId: ref.contactId,
-    sessionId: sessId,
-    type: "session_started",
-    category: "acquisition",
-    timestamp: sessStartStr,
-    description: ref.source === "unknown" ? "Direct visit" : `${ref.source} visit`,
-    metadata: {},
-    sourceSystem: "website_tracker",
-  });
-
-  // Page views
-  for (let p = 0; p < randInt(1, 3); p++) {
-    eventCounter++;
-    const pvTime = addMinutes(sessStartStr, (p + 1) * randInt(2, 5));
-    events.push({
-      id: genId("evt", eventCounter),
-      personId: ref.contactId,
-      sessionId: sessId,
-      type: "page_viewed",
-      category: "website",
-      timestamp: pvTime,
-      description: `Viewed ${pick(PAGES)}`,
-      metadata: { page: pick(PAGES) },
-      sourceSystem: "website_tracker",
-    });
-  }
-
-  // Conversion event
-  eventCounter++;
-  events.push({
-    id: genId("evt", eventCounter),
-    personId: ref.contactId,
-    sessionId: sessId,
-    type: convMechToEventType(convMech),
-    category: "conversion",
-    timestamp: leadDateStr,
-    description: `${convMech} conversion`,
-    metadata: { formType: convMech },
-    sourceSystem: convMechToSourceSystem(convMech),
-  });
 
   // lead_created
   eventCounter++;
@@ -628,23 +852,20 @@ const usedCompanyNames = new Set<string>(
 );
 
 // ── Attribution-aware source + status assignment ──────────────────────────
-// Heroes: 9 full, 2 partial (Thomas+Michael: direct with relationships), 1 unknown (Anna)
-// Ledger (19): all have marketing sessions → 19 full
-// Need from no-opp (49): 58-9-19=30 full, 15-2=13 partial, 7-1=6 unknown
+// Heroes: 9 full, 1 partial(a) (Thomas: direct with relationship), 1 unknown (Anna)
+// Michael Brown has no lead_created → not a lead
+// Ledger (19): all have marketing sessions + conversion → 19 full
+// Need from no-opp (50): 58-9-19=30 full, 15-1=14 partial (3 partial_a + 11 partial_b), 7-1=6 unknown
 //
-// Attribution derivation logic:
-//   Full: session has marketing source
-//   Partial: no marketing session, but Person.firstTouchSource is marketing OR has relationship/self-reported
-//   Unknown: no marketing session, non-marketing firstTouchSource, no relationship/self-reported
-//
-// Marketing-source no-opp leads (41): 30 full + 11 partial (direct sessions)
-// Unknown-source no-opp leads (8): 6 unknown + 2 partial (with self-reported)
+// Source allocation:
+//   41 marketing no-opp sources (12+10+7+5+2+2+1+2) → 30 full + 11 partial(b)
+//   9 unknown no-opp sources → 3 partial(a) + 6 unknown
 
 // Build coordinated source+status pairs
 interface NoOppLead { source: Source; attrStatus: AttrStatus; }
 const noOppLeads: NoOppLead[] = [];
 
-// Marketing sources (41 total): 30 full + 11 partial
+// Marketing sources: 41 total → 30 full + 11 partial(b)
 const marketingSources: Source[] = [];
 for (const [source, count] of Object.entries(NO_OPP_SOURCE_COUNTS)) {
   if (source !== "unknown") {
@@ -657,22 +878,22 @@ const shuffledMarketingSources = shuffle(marketingSources);
 for (let i = 0; i < shuffledMarketingSources.length; i++) {
   noOppLeads.push({
     source: shuffledMarketingSources[i],
-    attrStatus: i < 30 ? "full" : "partial",
+    attrStatus: i < 30 ? "full" : "partial_b",
   });
 }
 
-// Unknown sources (8 total): 6 unknown + 2 partial (with self-reported)
-for (let i = 0; i < 8; i++) {
+// Unknown sources (9 total): 3 partial(a) + 6 unknown
+for (let i = 0; i < 9; i++) {
   noOppLeads.push({
     source: "unknown",
-    attrStatus: i < 6 ? "unknown" : "partial",
+    attrStatus: i < 3 ? "partial_a" : "unknown",
   });
 }
 
 // Shuffle all no-opp leads together
 const shuffledNoOppLeads = shuffle(noOppLeads);
 
-// Self-reported attributions for unknown-source partial leads
+// Self-reported attributions for partial(a) leads
 const SELF_REPORTED_RESPONSES = [
   "A colleague mentioned your company at a conference.",
   "Heard about you through an industry contact.",
@@ -690,7 +911,7 @@ const generatedSelfReported: GenSelfReported[] = [];
 const WAITING_OFFSETS_HOURS = [73, 98, 120]; // 3d 1h, 4d 2h, 5d 0h
 const NOW = new Date("2026-09-27T12:00:00+02:00");
 
-// Pre-generate 18 companies for the 49 no-opp leads (target: 45 total companies)
+// Pre-generate 18 companies for the 50 no-opp leads (target: 45 total companies)
 // 45 - 8 (hero) - 19 (ledger) = 18
 const NO_OPP_COMPANY_COUNT = 18;
 interface NoOppCompany {
@@ -727,14 +948,14 @@ for (let c = 0; c < NO_OPP_COMPANY_COUNT; c++) {
   companies.push(comp);
 }
 
-// Distribute 49 leads across the 18 companies (some companies get multiple leads)
+// Distribute 50 leads across the 18 companies (some companies get multiple leads)
 const companyAssignments: number[] = [];
-for (let i = 0; i < 49; i++) {
+for (let i = 0; i < 50; i++) {
   companyAssignments.push(i % NO_OPP_COMPANY_COUNT);
 }
 const shuffledAssignments = shuffle(companyAssignments);
 
-for (let i = 0; i < 49; i++) {
+for (let i = 0; i < 50; i++) {
   const { source, attrStatus } = shuffledNoOppLeads[i];
   const assignedCompany = noOppCompanies[shuffledAssignments[i]];
 
@@ -752,8 +973,6 @@ for (let i = 0; i < 49; i++) {
     leadBase.setTime(lastEmailTime.getTime() - randInt(7, 14) * 86400000);
   }
 
-  const leadDateStr = leadBase.toISOString().replace("Z", "+02:00").replace(/\.\d{3}/, "");
-
   // Person
   personCounter++;
   const firstName = pick(FIRST_NAMES);
@@ -762,17 +981,16 @@ for (let i = 0; i < 49; i++) {
   const personId = genId("person", personCounter);
   const email = `${firstName.toLowerCase()}.${lastName.toLowerCase().replace(/[^a-z]/g, "")}@${assignedCompany.domain}`;
   const title = pick(TITLES);
-  const convMech = pickConvMech(source);
 
-  // For unknown attribution, conversion channel is direct
-  const convChannel = (attrStatus === "unknown" || source === "unknown")
-    ? "direct" : source;
+  // Conversion mechanism:
+  // Partial(b) = no tracked conversion, CRM records email_inquiry as the mechanism
+  const convMech = attrStatus === "partial_b" ? "email_inquiry" as ConvMech : pickConvMech(source);
 
-  // For partial type (b), conversion is unknown
-  const effectiveConvMech = attrStatus === "partial" && rand() > 0.3
-    ? convMech : convMech;
+  const leadStatus = isWaiting ? "contacted" : shuffledStages[stageIdx++];
 
-  const displayStage = isWaiting ? "contacted" : shuffledStages[stageIdx++];
+  // Build journey and emit sessions/events
+  const journeySessions = buildJourney(source, attrStatus, convMech);
+  const leadDateStr = emitJourney(personId, journeySessions, leadBase);
 
   people.push({
     id: personId,
@@ -781,88 +999,19 @@ for (let i = 0; i < 49; i++) {
     title,
     companyId: assignedCompany.id,
     ownerId: assignedCompany.ownerId,
-    displayStage,
-    firstTouchSource: source,
+    leadStatus,
     conversionMechanism: convMech,
-    conversionChannel: convChannel,
     createdAt: leadDateStr,
   });
 
-  // Session
-  sessionCounter++;
-  const sessId = genId("sess", sessionCounter);
-  const sessStart = new Date(leadBase.getTime() - randInt(10, 60) * 60000);
-  const sessStartStr = sessStart.toISOString().replace("Z", "+02:00").replace(/\.\d{3}/, "");
-
-  // Partial leads have direct sessions (CRM knows the source but session tracking doesn't)
-  const sessionSource = (source === "unknown" || attrStatus === "partial") ? "direct" : source;
-
-  sessions.push({
-    id: sessId,
-    personId,
-    source: sessionSource,
-    medium: attrStatus === "partial" ? "none" : sourceToMedium(source),
-    startedAt: sessStartStr,
-    landingPage: pick(PAGES),
-    referrer: attrStatus === "partial" ? "" : sourceToReferrer(source),
-    campaign: attrStatus === "partial" ? undefined : sourceToCampaign(source),
-    pageviews: randInt(1, 5),
-    duration: randInt(60, 600),
-    sourceSystem: "website_tracker",
-  });
-
-  // Add self-reported attribution for unknown-source partial leads
-  if (source === "unknown" && attrStatus === "partial") {
+  // Self-reported attribution for partial(a) leads only
+  // Partial(a) = direct session + self-reported evidence → no marketing touch detected
+  if (attrStatus === "partial_a") {
     generatedSelfReported.push({
       personId,
       response: pick(SELF_REPORTED_RESPONSES),
     });
   }
-
-  // Events
-  eventCounter++;
-  events.push({
-    id: genId("evt", eventCounter),
-    personId,
-    sessionId: sessId,
-    type: "session_started",
-    category: "acquisition",
-    timestamp: sessStartStr,
-    description: source === "unknown" ? "Direct visit" : `${source} visit`,
-    metadata: {},
-    sourceSystem: "website_tracker",
-  });
-
-  // Page views
-  const pvCount = randInt(1, 3);
-  for (let p = 0; p < pvCount; p++) {
-    eventCounter++;
-    events.push({
-      id: genId("evt", eventCounter),
-      personId,
-      sessionId: sessId,
-      type: "page_viewed",
-      category: "website",
-      timestamp: addMinutes(sessStartStr, (p + 1) * randInt(2, 5)),
-      description: `Viewed ${pick(PAGES)}`,
-      metadata: { page: pick(PAGES) },
-      sourceSystem: "website_tracker",
-    });
-  }
-
-  // Conversion
-  eventCounter++;
-  events.push({
-    id: genId("evt", eventCounter),
-    personId,
-    sessionId: sessId,
-    type: convMechToEventType(convMech),
-    category: "conversion",
-    timestamp: leadDateStr,
-    description: `${convMech} conversion`,
-    metadata: { formType: convMech },
-    sourceSystem: convMechToSourceSystem(convMech),
-  });
 
   // lead_created
   eventCounter++;

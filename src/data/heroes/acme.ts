@@ -34,10 +34,8 @@ export const acmePeople: Person[] = [
     title: "VP Product",
     companyId: "company_acme",
     ownerId: "usr_igor",
-    displayStage: "proposal",
-    firstTouchSource: "google_organic",
+    leadStatus: "qualified",
     conversionMechanism: "contact_form",
-    conversionChannel: "direct",
     selfReportedSource:
       "Have been following your LinkedIn content for a while.",
     createdAt: "2026-09-14T10:11:00+02:00",
@@ -49,10 +47,8 @@ export const acmePeople: Person[] = [
     title: "CTO",
     companyId: "company_acme",
     ownerId: "usr_igor",
-    displayStage: "proposal",
-    firstTouchSource: "linkedin_organic",
+    leadStatus: "qualified",
     conversionMechanism: "newsletter_signup",
-    conversionChannel: "linkedin_organic",
     createdAt: "2026-09-15T11:10:00+02:00",
   },
   {
@@ -62,10 +58,8 @@ export const acmePeople: Person[] = [
     title: "CEO",
     companyId: "company_acme",
     ownerId: "usr_igor",
-    displayStage: "proposal",
-    firstTouchSource: "direct",
+    leadStatus: "new",
     conversionMechanism: "contact_form",
-    conversionChannel: "direct",
     createdAt: "2026-09-22T10:00:00+02:00",
   },
 ];
@@ -79,7 +73,7 @@ export const acmeRelationships: RelationshipAttribution[] = [
     personId: "person_michael_brown",
     type: "personal_network",
     referrerName: "Lena Holm",
-    referrerCompany: "Acme Inc",
+    referrerCompany: "Former colleague of Igor",
   },
 ];
 
@@ -166,7 +160,7 @@ export const acmeSessions: Session[] = [
     startedAt: "2026-09-25T08:40:00+02:00",
     landingPage: "/services/ai-product-development",
     referrer: "",
-    pageviews: 5,
+    pageviews: 4,
     duration: 540,
     sourceSystem: "website_tracker",
   },
@@ -405,7 +399,7 @@ export const acmeEvents: Event[] = [
     category: "meeting",
     timestamp: "2026-09-16T09:00:00+02:00",
     description: "Discovery call",
-    metadata: { meetingType: "Discovery call" },
+    metadata: { meetingType: "Discovery call", meetingId: "mtg_acme_001" },
     sourceSystem: "calendar",
   },
   {
@@ -415,7 +409,7 @@ export const acmeEvents: Event[] = [
     category: "meeting",
     timestamp: "2026-09-16T14:00:00+02:00",
     description: "Discovery call, 45 min",
-    metadata: { meetingType: "Discovery call", duration: 45 },
+    metadata: { meetingType: "Discovery call", meetingId: "mtg_acme_001", duration: 45 },
     sourceSystem: "calendar",
   },
   {
@@ -439,7 +433,7 @@ export const acmeEvents: Event[] = [
     category: "meeting",
     timestamp: "2026-09-17T11:00:00+02:00",
     description: "Proposal scoping",
-    metadata: { meetingType: "Proposal scoping" },
+    metadata: { meetingType: "Proposal scoping", meetingId: "mtg_acme_002" },
     sourceSystem: "calendar",
   },
   {
@@ -539,6 +533,7 @@ export const acmeEvents: Event[] = [
     description: "Proposal scoping, 60 min, John + Sarah",
     metadata: {
       meetingType: "Proposal scoping",
+      meetingId: "mtg_acme_002",
       duration: 60,
       attendees: "John Smith, Sarah Johnson",
     },
@@ -625,17 +620,7 @@ export const acmeEvents: Event[] = [
     metadata: { page: "/work" },
     sourceSystem: "website_tracker",
   },
-  {
-    id: "evt_acme_039",
-    personId: "person_john_smith",
-    sessionId: "sess_acme_005",
-    type: "page_viewed",
-    category: "website",
-    timestamp: "2026-09-25T08:49:00+02:00",
-    description: "Viewed /services/software-engineering",
-    metadata: { page: "/services/software-engineering" },
-    sourceSystem: "website_tracker",
-  },
+  // evt_acme_039 removed — 17 total page-view events (§7 target)
 
   // ---- Sarah Johnson: LinkedIn Organic → Newsletter (Sep 15) ----
   {

@@ -1,4 +1,6 @@
-import type { AcquisitionSource, ConversionMechanism } from "./attribution";
+import type { ConversionMechanism } from "./attribution";
+
+export type LeadStatus = "new" | "contacted" | "qualified" | "disqualified";
 
 export type DisplayStage =
   | "new"
@@ -18,10 +20,8 @@ export interface Person {
   title: string;
   companyId: string;
   ownerId: string;
-  displayStage: DisplayStage;
-  firstTouchSource: AcquisitionSource;
+  leadStatus: LeadStatus;
   conversionMechanism: ConversionMechanism;
-  conversionChannel: AcquisitionSource;
   selfReportedSource?: string;
   createdAt: string;
 }

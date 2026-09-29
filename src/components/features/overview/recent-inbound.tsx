@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { people, companies } from "@/data";
+import { companies } from "@/data";
 import { getOpportunityByPersonId } from "@/lib/data/repositories";
+import { getFirstTouchSource, getDisplayStage, getLeadPeople } from "@/lib/attribution/derived";
 import {
   PersonIdentity,
   SourceBadge,
@@ -25,7 +26,7 @@ import {
 
 const companyMap = new Map(companies.map((c) => [c.id, c]));
 
-const recentLeads = [...people]
+const recentLeads = [...getLeadPeople()]
   .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   .slice(0, 8);
 
@@ -55,7 +56,7 @@ const columns: ColumnDef<Person, unknown>[] = [
     id: "firstTouch",
     header: "First Touch",
     cell: ({ row }) => (
-      <SourceBadge source={row.original.firstTouchSource} />
+      <SourceBadge source={getFirstTouchSource(row.original.id)} />
     ),
     enableSorting: false,
   },
@@ -63,7 +64,7 @@ const columns: ColumnDef<Person, unknown>[] = [
     id: "stage",
     header: "Stage",
     cell: ({ row }) => (
-      <StageBadge stage={row.original.displayStage} />
+      <StageBadge stage={getDisplayStage(row.original.id)} />
     ),
     enableSorting: false,
   },

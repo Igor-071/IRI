@@ -19,10 +19,8 @@ export const northstarPeople: Person[] = [
     title: "Chief Digital Officer",
     companyId: "company_northstar",
     ownerId: "usr_elma",
-    displayStage: "negotiation",
-    firstTouchSource: "google_ads",
+    leadStatus: "qualified",
     conversionMechanism: "book_a_call",
-    conversionChannel: "google_ads",
     createdAt: "2026-08-19T15:30:00+02:00",
   },
 ];
