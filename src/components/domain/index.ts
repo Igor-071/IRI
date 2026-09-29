@@ -10,3 +10,4 @@ export { EventTypeBadge } from "./event-type-badge";
 export { MoneyValue } from "./money-value";
 export { DateTime } from "./date-time";
 export { SourceSystemChip } from "./source-system-chip";
+export { JourneyPathDisplay } from "./journey-path-display";

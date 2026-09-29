@@ -1,6 +1,22 @@
-import type { Event, Session, ConversionMechanism, EventType } from "@/types";
+import type {
+  AcquisitionSource,
+  Event,
+  Session,
+  ConversionMechanism,
+  EventType,
+} from "@/types";
 import { events, people, sessions } from "@/data";
 import { sourceConfig, isMarketingTouch } from "@/lib/config/sources";
+import { NOW } from "@/lib/config/constants";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+export interface JourneyPathSegment {
+  label: string;
+  source?: AcquisitionSource;
+  isConversion: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // Conversion-mechanism labels
@@ -213,4 +229,91 @@ export function getAccountLatestMarketingTouch(
     personName: latestPerson.name,
     timestamp: latest.startedAt,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 6. getJourneyTouchCount
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the number of sessions (touches) for a person.
+ */
+export function getJourneyTouchCount(personId: string): number {
+  return (getPersonSessionsMap().get(personId) ?? []).length;
+}
+
+// ---------------------------------------------------------------------------
+// 7. getJourneyDurationMinutes
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns journey duration in minutes: first session → conversion event (or NOW).
+ */
+export function getJourneyDurationMinutes(personId: string): number {
+  const personSessions = getPersonSessionsMap().get(personId) ?? [];
+  if (personSessions.length === 0) return 0;
+
+  const earliest = personSessions.reduce((a, b) =>
+    a.startedAt.localeCompare(b.startedAt) < 0 ? a : b,
+  );
+
+  const personEvents = getPersonEventsMap().get(personId) ?? [];
+  const conversionEvent = personEvents.find((e) =>
+    CONVERSION_EVENT_TYPES.has(e.type),
+  );
+
+  const startTime = new Date(earliest.startedAt).getTime();
+  const endTime = conversionEvent
+    ? new Date(conversionEvent.timestamp).getTime()
+    : NOW.getTime();
+
+  return Math.max(0, (endTime - startTime) / 60_000);
+}
+
+// ---------------------------------------------------------------------------
+// 8. getJourneyPathSegments
+// ---------------------------------------------------------------------------
+
+/**
+ * Structured version of getJourneyPath — returns segments with source info
+ * and a flag for the conversion step.
+ */
+export function getJourneyPathSegments(
+  personId: string,
+): JourneyPathSegment[] {
+  const personSessions = (getPersonSessionsMap().get(personId) ?? [])
+    .slice()
+    .sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+
+  const personEvents = getPersonEventsMap().get(personId) ?? [];
+
+  const segments: JourneyPathSegment[] = [];
+  for (const session of personSessions) {
+    const cfg = sourceConfig[session.source];
+    if (
+      segments.length === 0 ||
+      segments[segments.length - 1].label !== cfg.shortLabel
+    ) {
+      segments.push({
+        label: cfg.shortLabel,
+        source: session.source,
+        isConversion: false,
+      });
+    }
+  }
+
+  const conversionEvent = personEvents.find((e) =>
+    CONVERSION_EVENT_TYPES.has(e.type),
+  );
+  if (conversionEvent) {
+    const mechanism = EVENT_TYPE_TO_MECHANISM[conversionEvent.type];
+    if (mechanism) {
+      segments.push({
+        label: CONVERSION_MECHANISM_LABELS[mechanism],
+        isConversion: true,
+      });
+    }
+  }
+
+  return segments;
 }
